@@ -9,7 +9,7 @@ namespace WildRiftWebAPI
     public class ChampionQueryValidator : AbstractValidator<ChampionQuery>
     {
         private readonly int[] allowedPageSizes = new[] {5, 10, 15};
-        private readonly string[] allowedSortByColumnNames = { nameof(ChampionDto.Champion.Name), nameof(ChampionDto.Champion.Title) };
+        private readonly string[] allowedSortByColumnNames = { nameof(ChampionDto.Name), nameof(ChampionDto.Title) };
 
         public ChampionQueryValidator()
         {

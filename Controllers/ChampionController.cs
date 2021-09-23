@@ -36,6 +36,5 @@ namespace WildRiftWebAPI
             var championsDtos = _championtService.GetAll(query);
             return Ok(championsDtos);
         }
-
     }
 }

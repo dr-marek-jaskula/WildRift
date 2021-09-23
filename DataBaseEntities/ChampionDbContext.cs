@@ -16,20 +16,20 @@ namespace WildRiftWebAPI
         {
             modelBuilder.Entity<Champion>().HasKey(c => c.Name);
 
-            //modelBuilder.Entity<ChampionSpell>()
-            //            .HasOne(p => p.Champion)
-            //            .WithMany(b => b.ChampionSpells)
-            //            .HasForeignKey(p => p.Id);
+            modelBuilder.Entity<ChampionSpell>()
+                        .HasOne(p => p.ChampionObj)
+                        .WithMany(b => b.ChampionSpells)
+                        .HasForeignKey(p => p.Champion);
 
-            //modelBuilder.Entity<ChampionPassive>()
-                        //.HasOne(p => p.Champion)
-                        //.WithOne(b => b.ChampionPassive)
-                        //.HasForeignKey("spell_passive");
+
+            modelBuilder.Entity<Champion>()
+                        .HasOne(b => b.ChampionPassive)
+                        .WithOne(i => i.ChampionObj)
+                        .HasForeignKey<ChampionPassive>(b => b.Champion);
         }
 
         public ChampionDbContext(DbContextOptions<ChampionDbContext> options) : base(options)
         {
-
         }
     }
 }

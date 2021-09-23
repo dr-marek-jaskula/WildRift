@@ -38,6 +38,8 @@ namespace WildRiftWebAPI
         public PageResult<ChampionDto> GetAll(ChampionQuery query)
         {
             var baseQuery = _dbContex.Champions
+                .Include(r => r.ChampionSpells)
+                .Include(r => r.ChampionPassive)
                 .Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower()) || r.Title.ToLower().Contains(query.SearchPhrase.ToLower())));
 
             if (!string.IsNullOrEmpty(query.SortBy))
@@ -62,10 +64,10 @@ namespace WildRiftWebAPI
 
             int totalItemsCount = baseQuery.Count();
 
-            //var championsDtos = _mapper.Map<List<ChampionDto>>(champions);
-            var championsDtos = new List<ChampionDto>();
-            foreach (var champion in champions)
-                championsDtos.Add(new() { Champion = champion, ChampionPassive = null, ChampionSpells = null });
+            var championsDtos = _mapper.Map<List<ChampionDto>>(champions);
+
+            foreach (var championDto in championsDtos)
+                championDto.ChampionSpells = championDto.ChampionSpells.OrderBy(ch => "QWER".IndexOf(ch.Id.Last())).ToList();
 
             var result = new PageResult<ChampionDto>(championsDtos, totalItemsCount, query.PageSize, query.PageNumber);
 
@@ -74,16 +76,12 @@ namespace WildRiftWebAPI
 
         public ChampionDto GetByName(string name)
         {
-            var champion = _dbContex.Champions.FirstOrDefault(r => r.Name == name); // tutaj jakieœ inlcude zeby wszystko w jednym braæ
-            if (champion is null) throw new NotFoundException("Champion not found"); 
-            
-            var championSpells = _dbContex.Champions_Spells.Where(r => r.Id.Contains(name));
-            var championPassive = _dbContex.Champions_Passives.FirstOrDefault(r => r.Id.Contains(name));
+            var champion = _dbContex.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name == name); 
 
+            if (champion is null) throw new NotFoundException("Champion not found");
 
-            var result = new ChampionDto() { Champion = champion, ChampionPassive = championPassive, ChampionSpells = championSpells.ToList() }; // to jeszcze do przerobienia (ca³y model a potem mapowanie)
-            //var result = _mapper.Map<RestaurantDto>(champion); //zmapujemy do ChampionDto z spellami itp
-
+            champion.ChampionSpells = champion.ChampionSpells.OrderBy(ch => "QWER".IndexOf(ch.Id.Last())).ToList();
+            var result = _mapper.Map<ChampionDto>(champion);
             return result;
         }
     }
