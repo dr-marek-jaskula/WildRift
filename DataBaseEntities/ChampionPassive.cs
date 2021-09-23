@@ -20,6 +20,6 @@ namespace WildRiftWebAPI
         public int Image_w { get; set; }
         public int Image_h { get; set; }
 
-        public Champion Champion { get; set; }
+        //public Champion Champion { get; set; }
     }
 }
