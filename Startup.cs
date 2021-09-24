@@ -49,30 +49,18 @@ namespace WildRiftWebAPI
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authenticationSettings.JwtKey)),
                 };
             });
-            services.AddAuthorization(option =>
-            {
-                option.AddPolicy("HasNationality", builder => builder.RequireClaim("Nationality", "German", "Poland", "Home"));
-                option.AddPolicy("Atleast20", builder => builder.AddRequirements(new MinimumAgeRequirement(20)));
-                option.AddPolicy("CreatedAtLeast2Restaurants", builder => builder.AddRequirements(new CreatedMultipleRestaurantRequirement(2)));
-            });
 
-            services.AddScoped<IAuthorizationHandler, MinimumAgeRequirementHandler>();
-            services.AddScoped<IAuthorizationHandler, ResourceOperationRequirementHandler>();
-            services.AddScoped<IAuthorizationHandler, CreatedMultipleRestaurantRequirementHandler>();
             #endregion
 
             services.AddControllers().AddFluentValidation();
 
-            #region Fluent Validation, DbContex registration and Seeders
-            services.AddDbContext<RestaurantDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("RestaurantDbConnection")));
+            #region DbContex registration
             services.AddDbContext<ChampionDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("LolWildDbConnection")));
-            services.AddScoped<RestaurantSeeder>();
             #endregion
 
             services.AddAutoMapper(GetType().Assembly); 
             
             #region Services
-            services.AddScoped<IRestaurantService, RestaurantService>();
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IChampionService, ChampionService>();
             #endregion
@@ -85,7 +73,6 @@ namespace WildRiftWebAPI
 
             #region Validators
             services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
-            services.AddScoped<IValidator<RestaurantQuery>, RestaurantQueryValidator>();
             services.AddScoped<IValidator<ChampionQuery>, ChampionQueryValidator>();
             #endregion
 
@@ -109,13 +96,11 @@ namespace WildRiftWebAPI
             #endregion
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, RestaurantSeeder seeder)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseResponseCaching();
             app.UseStaticFiles();
             app.UseCors("FrontEndClient");
-
-            seeder.Seed();
 
             #region Middlewares
             app.UseMiddleware<ErrorHandlingMiddleware>();

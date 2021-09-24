@@ -8,7 +8,7 @@ namespace WildRiftWebAPI
 {
     public class RegisterUserDtoValidator : AbstractValidator<RegisterUserDto>
     {
-        public RegisterUserDtoValidator(RestaurantDbContext dbContext)
+        public RegisterUserDtoValidator(ChampionDbContext dbContext)
         {
             RuleFor(x => x.Email)
                 .NotEmpty()
@@ -22,6 +22,13 @@ namespace WildRiftWebAPI
             {
                 bool emialInUse = dbContext.Users.Any(u => u.Email == value);
                 if (emialInUse) contex.AddFailure("Email", "That email is taken");
+            });
+
+            RuleFor(x => x.Username).Custom((value, contex) =>
+            {
+                bool usernameInUse = dbContext.Users.Any(u => u.Username == value);
+                if (usernameInUse) 
+                    contex.AddFailure("Username", "That username is taken");
             });
         }
 

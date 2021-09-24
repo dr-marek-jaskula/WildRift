@@ -22,11 +22,11 @@ namespace WildRiftWebAPI
 
     public class AccountService : IAccountService
     {
-        private readonly RestaurantDbContext _context;
+        private readonly ChampionDbContext _context;
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly AuthenticationSettings _authenticationSettings;
 
-        public AccountService(RestaurantDbContext context, IPasswordHasher<User> passwordHasher, AuthenticationSettings authenticationSettings)
+        public AccountService(ChampionDbContext context, IPasswordHasher<User> passwordHasher, AuthenticationSettings authenticationSettings)
         {
             _context = context;
             _passwordHasher = passwordHasher;
@@ -35,15 +35,17 @@ namespace WildRiftWebAPI
 
         public void RegisterUser(RegisterUserDto dto)
         {
+            //var newUser = _mapper.Map<User>(dto);
+
             var newUser = new User()
             {
                 Email = dto.Email,
-                DateOfBirth = dto.DateOfBirth,
-                Nationality = dto.Nationality,
-                RoleId = dto.RoleId
+                Role_id = dto.RoleId,
+                Username = dto.Username,
+                Create_time = DateTime.Now
             };
             string hashedPassword = _passwordHasher.HashPassword(newUser, dto.Password);
-            newUser.PasswordHash = hashedPassword;
+            newUser.Password_hash = hashedPassword;
 
             _context.Users.Add(newUser);
             _context.SaveChanges();
@@ -52,25 +54,24 @@ namespace WildRiftWebAPI
         public string GenerateJwt(LoginDto dto)
         {
             var user = _context.Users
-                .Include(u=>u.Role)
-                .FirstOrDefault(u => u.Email == dto.Email);
+                .Include(u => u.Role)
+                .FirstOrDefault(u => u.Username == dto.Username);
 
-            if (user is null) throw new BadRequestException("Invalid user name or password");
+            if (user is null) 
+                throw new BadRequestException("Invalid user name or password");
 
-            var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password);
+            var result = _passwordHasher.VerifyHashedPassword(user, user.Password_hash, dto.Password);
 
-            if (result is PasswordVerificationResult.Failed) throw new BadRequestException("Invalid user name or password");
+            if (result is PasswordVerificationResult.Failed) 
+                throw new BadRequestException("Invalid username or password");
 
             var claims = new List<Claim>()
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
+                new Claim(ClaimTypes.NameIdentifier, user.Username),
                 new Claim(ClaimTypes.Role, $"{user.Role.Name}"),
-                new Claim("DateOfBirth", user.DateOfBirth.Value.ToString("yyyy-MM-dd")),
+                new Claim("Create_time", user.Create_time.Value.ToString("yyyy-MM-dd")),
             };
             
-            if (!string.IsNullOrEmpty(user.Nationality)) claims.Add(new Claim("Nationality", user.Nationality));
-
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authenticationSettings.JwtKey));
 
             var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

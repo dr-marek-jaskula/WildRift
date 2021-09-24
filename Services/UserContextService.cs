@@ -21,7 +21,6 @@ namespace WildRiftWebAPI
         public int? GetUserId { get; }
     }
     
-    //klasa odpowiedzialna za udpostêpnianie informacji o danym uzytkowniku na podstawie kontekstu http
     public class UserContextService : IUserContextService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -31,10 +30,8 @@ namespace WildRiftWebAPI
             _httpContextAccessor = httpContextAccessor;
         }
 
-        //informacje o userze z kontekstu. Dopuszczamy nullable, bo nie musi byc w naglowku ten claim
         public ClaimsPrincipal User => _httpContextAccessor.HttpContext?.User;
 
-        //dopuszczamy nullable bo moze nie byc w naglowku
-        public int? GetUserId => User is null ? null : (int?)int.Parse(User.FindFirst(c => c.Type == ClaimTypes.NameIdentifier).Value);
+        public int? GetUserId => User is null ? null : (int?)int.Parse(User.FindFirst(c => c.Type is ClaimTypes.NameIdentifier).Value);
     }
 }

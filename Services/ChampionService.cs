@@ -16,6 +16,9 @@ namespace WildRiftWebAPI
     {
         ChampionDto GetByName(string name);
         PageResult<ChampionDto> GetAll(ChampionQuery query);
+        void Delete(string name);
+        void Create(CreateChampion dto);
+        void Update(string name, UpdateChampion updateChampion);
     }
 
     public class ChampionService : IChampionService
@@ -33,6 +36,18 @@ namespace WildRiftWebAPI
             _logger = logger;
             _authorizationService = authorizationService;
             _userContextService = userContextService;
+        }
+
+        public ChampionDto GetByName(string name)
+        {
+            var champion = _dbContex.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name == name);
+
+            if (champion is null)
+                throw new NotFoundException("Champion not found");
+
+            champion.ChampionSpells = champion.ChampionSpells.OrderBy(ch => "QWER".IndexOf(ch.Id.Last())).ToList();
+            var result = _mapper.Map<ChampionDto>(champion);
+            return result;
         }
 
         public PageResult<ChampionDto> GetAll(ChampionQuery query)
@@ -74,15 +89,61 @@ namespace WildRiftWebAPI
             return result;
         }
 
-        public ChampionDto GetByName(string name)
+        public void Delete(string name)
         {
-            var champion = _dbContex.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name == name); 
+            _logger.LogWarning($"Restaurant with id: {name} Delete action invoked");
 
-            if (champion is null) throw new NotFoundException("Champion not found");
+            var champion = _dbContex.Champions.FirstOrDefault(ch => ch.Name == name);
 
-            champion.ChampionSpells = champion.ChampionSpells.OrderBy(ch => "QWER".IndexOf(ch.Id.Last())).ToList();
-            var result = _mapper.Map<ChampionDto>(champion);
-            return result;
+            if (champion is null)
+                throw new NotFoundException("Champion not found");
+
+            var championPassive = _dbContex.Champions_Passives.FirstOrDefault(ch => ch.Id.Contains(name));
+            var championSpells = _dbContex.Champions_Spells.Where(ch => ch.Id.Contains(name));
+
+            _dbContex.Champions.Remove(champion);
+            _dbContex.Champions_Passives.Remove(championPassive);
+            _dbContex.Champions_Spells.RemoveRange(championSpells);
+            _dbContex.SaveChanges();
+        }
+        
+        public void Create(CreateChampion createChampion)
+        {
+            var champion = _mapper.Map<Champion>(createChampion.CreateChampionDto);
+            var championPassive = _mapper.Map<ChampionPassive>(createChampion.CreateChampionPassiveDto);
+            var championSpells = _mapper.Map<List<ChampionSpell>>(createChampion.CreateChampionSpellDtos);
+
+            _dbContex.Champions_Passives.Add(championPassive);
+            _dbContex.SaveChanges();
+            _dbContex.Champions_Spells.AddRange(championSpells);
+            _dbContex.SaveChanges();
+            _dbContex.Champions.Add(champion);
+            _dbContex.SaveChanges();
+        }
+        
+        //Update in refactoring...
+        public void Update(string name, UpdateChampion updateChampion)
+        {
+            var champion = _dbContex.Champions.FirstOrDefault(r => r.Name == name);
+            var championPassive = _dbContex.Champions_Passives.FirstOrDefault(r => r.Id.Contains(name));
+            var championSpells = _dbContex.Champions_Spells.Where(r => r.Id.Contains(name));
+
+            if (champion is null) 
+                throw new NotFoundException("Champion not found");
+
+            champion.Title = "ffdfdfd";
+
+            var updatedChampion = _mapper.Map<Champion>(updateChampion.UpdateChampionDto);
+            var updatedChampionPassive = _mapper.Map<ChampionPassive>(updateChampion.UpdateChampionPassiveDto);
+            var updatedChampionSpells = _mapper.Map<List<ChampionSpell>>(updateChampion.UpdateChampionSpellDtos);
+
+            champion = updatedChampion;
+            championPassive = updatedChampionPassive;
+            championSpells = updatedChampionSpells as IQueryable<ChampionSpell>;
+
+            //w petlli co ne jest nullem to updatuje
+
+            _dbContex.SaveChanges();
         }
     }
 }

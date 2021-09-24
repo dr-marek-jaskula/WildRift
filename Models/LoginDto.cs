@@ -5,8 +5,7 @@ namespace WildRiftWebAPI
 {
     public class LoginDto
     {
-        //mo¿naby tu dodaæ atrybuty walidacji, albo wykorzystaæ osobny validator (ale dla uproszczenia zostawiamy tak jak jest)
-        public string Email { get; set; }
+        public string Username { get; set; }
         public string Password { get; set; }
     }
 }

@@ -8,8 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WildRiftWebAPI
 {
-    //[Route("api/[controller]")] //ścieżka to teraz api/account oraz również api/Account
-    [Route("api/account")] 
+    [Route("api/[controller]")]
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
@@ -32,6 +31,5 @@ namespace WildRiftWebAPI
             string token = _accountService.GenerateJwt(dto);
             return Ok(token);
         }
-
     }
 }
