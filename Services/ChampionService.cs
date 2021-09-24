@@ -121,27 +121,28 @@ namespace WildRiftWebAPI
             _dbContex.SaveChanges();
         }
         
-        //Update in refactoring...
         public void Update(string name, UpdateChampion updateChampion)
         {
             var champion = _dbContex.Champions.FirstOrDefault(r => r.Name == name);
             var championPassive = _dbContex.Champions_Passives.FirstOrDefault(r => r.Id.Contains(name));
-            var championSpells = _dbContex.Champions_Spells.Where(r => r.Id.Contains(name));
+            var championSpells = _dbContex.Champions_Spells.Where(r => r.Id.Contains(name)).ToList();
 
             if (champion is null) 
                 throw new NotFoundException("Champion not found");
 
-            champion.Title = "ffdfdfd";
+            foreach (var property in updateChampion.UpdateChampionDto.GetType().GetProperties())
+                if (property.GetValue(updateChampion.UpdateChampionDto) is not null)
+                    typeof(Champion).GetProperty(property.Name).SetValue(champion, property.GetValue(updateChampion.UpdateChampionDto));
 
-            var updatedChampion = _mapper.Map<Champion>(updateChampion.UpdateChampionDto);
-            var updatedChampionPassive = _mapper.Map<ChampionPassive>(updateChampion.UpdateChampionPassiveDto);
-            var updatedChampionSpells = _mapper.Map<List<ChampionSpell>>(updateChampion.UpdateChampionSpellDtos);
+            foreach (var property in updateChampion.UpdateChampionPassiveDto.GetType().GetProperties())
+                if (property.GetValue(updateChampion.UpdateChampionPassiveDto) is not null)
+                    typeof(ChampionPassive).GetProperty(property.Name).SetValue(championPassive, property.GetValue(updateChampion.UpdateChampionPassiveDto));
 
-            champion = updatedChampion;
-            championPassive = updatedChampionPassive;
-            championSpells = updatedChampionSpells as IQueryable<ChampionSpell>;
-
-            //w petlli co ne jest nullem to updatuje
+            foreach (var spell in updateChampion.UpdateChampionSpellDtos)
+                if (spell.Char is null) continue;
+                else foreach (var property in spell.GetType().GetProperties())
+                    if (property.GetValue(spell) is not null && property.Name != "Char")
+                        typeof(ChampionSpell).GetProperty(property.Name).SetValue(championSpells.Where(s => s.Id.Last() == spell.Char).First(), property.GetValue(spell));
 
             _dbContex.SaveChanges();
         }

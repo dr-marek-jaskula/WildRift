@@ -73,6 +73,7 @@ namespace WildRiftWebAPI
 
             #region Validators
             services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
+            services.AddScoped<IValidator<UpdateChampion>, UpdateChampionValidator>();
             services.AddScoped<IValidator<ChampionQuery>, ChampionQueryValidator>();
             #endregion
 

@@ -58,8 +58,7 @@ namespace WildRiftWebAPI
         }
 
         [HttpPut("{name}")]
-        //[Authorize(Roles = "Admin")]
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin")]
         public ActionResult Update([FromRoute] string name, [FromBody] UpdateChampion updateChampion)
         {
             _championtService.Update(name, updateChampion);

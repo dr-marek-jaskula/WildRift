@@ -35,8 +35,6 @@ namespace WildRiftWebAPI
 
         public void RegisterUser(RegisterUserDto dto)
         {
-            //var newUser = _mapper.Map<User>(dto);
-
             var newUser = new User()
             {
                 Email = dto.Email,
