@@ -24,6 +24,14 @@ namespace WildRiftWebAPI
             _championtService = championService;
         }
 
+        [HttpGet("{name}/{property}")]
+        [AllowAnonymous]
+        public ActionResult<string> GetProperty([FromRoute] string name, [FromRoute] string property)
+        {
+            var championProperyDto = _championtService.GetProperty(name, property);
+            return Ok(championProperyDto);
+        }
+
         [HttpGet("{name}")]
         [AllowAnonymous]
         public ActionResult<ChampionDto> Get([FromRoute] string name)

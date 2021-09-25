@@ -19,6 +19,7 @@ namespace WildRiftWebAPI
         void Delete(string name);
         void Create(CreateChampion dto);
         void Update(string name, UpdateChampion updateChampion);
+        string GetProperty(string name, string property);
     }
 
     public class ChampionService : IChampionService
@@ -145,6 +146,22 @@ namespace WildRiftWebAPI
                         typeof(ChampionSpell).GetProperty(property.Name).SetValue(championSpells.Where(s => s.Id.Last() == spell.Char).First(), property.GetValue(spell));
 
             _dbContex.SaveChanges();
+        }
+
+        public string GetProperty(string name, string property)
+        {
+            var champion = _dbContex.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name == name);
+
+            if (champion is null)
+                throw new NotFoundException("Champion not found");
+
+            var foundProperty = typeof(Champion).GetProperty(property);
+
+            if (foundProperty is null)
+                throw new NotFoundException("Property not found");
+
+            var result = foundProperty.GetValue(champion).ToString();
+            return result;
         }
     }
 }
