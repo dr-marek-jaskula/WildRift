@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using System.Linq.Expressions;
+using Google.Protobuf.WellKnownTypes;
 
 namespace WildRiftWebAPI
 {
@@ -20,6 +21,7 @@ namespace WildRiftWebAPI
         void Create(CreateChampion dto);
         void Update(string name, UpdateChampion updateChampion);
         string GetProperty(string name, string property);
+        string GetProperty(string name, string spellType, string property);
     }
 
     public class ChampionService : IChampionService
@@ -155,6 +157,7 @@ namespace WildRiftWebAPI
             if (champion is null)
                 throw new NotFoundException("Champion not found");
 
+            Capitalize(ref property);
             var foundProperty = typeof(Champion).GetProperty(property);
 
             if (foundProperty is null)
@@ -162,6 +165,47 @@ namespace WildRiftWebAPI
 
             var result = foundProperty.GetValue(champion).ToString();
             return result;
+        }
+
+        public string GetProperty(string name, string spellType, string property)
+        {
+            var champion = _dbContex.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name == name);
+
+            if (champion is null)
+                throw new NotFoundException("Champion not found");
+
+            Capitalize(ref property);
+            Capitalize(ref spellType);
+
+            if (spellType is "Passive")
+            {
+                var passiveProperty = typeof(ChampionPassive).GetProperty(property);
+                if (passiveProperty is null)
+                    throw new NotFoundException("Property not found");
+                var passiveResult = passiveProperty.GetValue(champion.ChampionPassive).ToString();
+                return passiveResult;
+            }
+            else
+            {
+                var spellProperty = typeof(ChampionSpell).GetProperty(property);
+
+                if (spellProperty is null)
+                    throw new NotFoundException("Property not found");
+
+                var spellResult = spellProperty.GetValue(champion.ChampionSpells[spellType switch {
+                    "E"  => 0,
+                    "Q"  => 1,
+                    "R"  => 2,
+                    "W"  => 3,
+                    _ => throw new NotFoundException("Spell type not found. It has to be \"Passive\" or \"Q\", \"W\", \"E\", \"R\""),
+                    }]).ToString();
+                return spellResult;
+            }
+        }
+
+        private static void Capitalize(ref string input)
+        {
+            input = $"{input[0].ToString().ToUpper()}{input[1..].ToLower()}"; //substring to jest input[1..]
         }
     }
 }

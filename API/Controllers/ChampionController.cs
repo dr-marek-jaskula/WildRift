@@ -15,7 +15,7 @@ namespace WildRiftWebAPI
     [Route("api/[controller]")] 
     [Authorize]
     [ApiController]
-    public class ChampionController : ControllerBase 
+    public class ChampionController : ControllerBase
 	{
         private readonly IChampionService _championtService;
 
@@ -29,6 +29,14 @@ namespace WildRiftWebAPI
         public ActionResult<string> GetProperty([FromRoute] string name, [FromRoute] string property)
         {
             var championProperyDto = _championtService.GetProperty(name, property);
+            return Ok(championProperyDto);
+        }
+
+        [HttpGet("{name}/{spellType}/{property}")]
+        [AllowAnonymous]
+        public ActionResult<string> GetProperty([FromRoute] string name, [FromRoute] string spellType, [FromRoute] string property)
+        {
+            var championProperyDto = _championtService.GetProperty(name, spellType, property);
             return Ok(championProperyDto);
         }
 
@@ -47,7 +55,6 @@ namespace WildRiftWebAPI
             var championsDtos = _championtService.GetAll(query);
             return Ok(championsDtos);
         }
-
 
         [HttpDelete("{name}")]
         [Authorize(Roles = "Admin")]
@@ -72,6 +79,5 @@ namespace WildRiftWebAPI
             _championtService.Update(name, updateChampion);
             return Ok();
         }
-
     }
 }

@@ -9,7 +9,7 @@ namespace WildRiftWebAPI
 {
     public class UpdateChampionSpellDto
     {
-#nullable enable
+        #nullable enable
         public char? Char { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
@@ -19,6 +19,6 @@ namespace WildRiftWebAPI
         public string? CostType { get; set; }
         public string? Spell_range { get; set; }
         public string? Resource { get; set; }
-#nullable disable
+        #nullable disable
     }
 }
