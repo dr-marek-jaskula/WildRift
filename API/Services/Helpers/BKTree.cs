@@ -13,16 +13,16 @@ namespace Eltin_Buchard_Keller_Algorithm
     /// </summary>
     public class BKTree
     {
-        private readonly LevenshteinNode _root;
-        private readonly Dictionary<LevenshteinNode, Int32> _matches;
+        private readonly BKTreeNode _root;
+        private readonly Dictionary<BKTreeNode, Int32> _matches;
 
-        public BKTree(LevenshteinNode initialNode)
+        public BKTree(BKTreeNode initialNode)
         {
             _root = initialNode;
-            _matches = new Dictionary<LevenshteinNode, Int32>();
+            _matches = new Dictionary<BKTreeNode, Int32>();
         }
 
-        public void Add(LevenshteinNode node)
+        public void Add(BKTreeNode node)
         {
             _root.Add(node);
         }
@@ -62,10 +62,10 @@ namespace Eltin_Buchard_Keller_Algorithm
         /// </summary>
         /// <param name="node"></param>
         /// <returns>A match that is within the best edit distance of the search node.</returns>
-        public LevenshteinNode FindBestNode(BKTreeNode node)
+        public BKTreeNode FindBestNode(BKTreeNode node)
         {
             _root.FindBestMatch(node, Int32.MaxValue, out BKTreeNode bestNode);
-            return (LevenshteinNode)bestNode;
+            return bestNode;
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace Eltin_Buchard_Keller_Algorithm
         {
             int distance = _root.FindBestMatch(_root, Int32.MaxValue, out BKTreeNode bestNode);
             _matches.Clear();
-            _matches.Add((LevenshteinNode)bestNode, distance);
+            _matches.Add(bestNode, distance);
             var listOfPossibleResults = _matches.Keys.First()._children.Select(x => x.Value).ToList();
             
             foreach (var item in listOfPossibleResults)
@@ -94,12 +94,12 @@ namespace Eltin_Buchard_Keller_Algorithm
         /// </summary>
         /// <param name="source"></param>
         /// <returns></returns>
-        private Dictionary<LevenshteinNode, Int32> CopyMatches(Dictionary<BKTreeNode, Int32> source)
+        private Dictionary<BKTreeNode, Int32> CopyMatches(Dictionary<BKTreeNode, Int32> source)
         {
             _matches.Clear();
 
             foreach (KeyValuePair<BKTreeNode, Int32> pair in source)
-                _matches.Add((LevenshteinNode)pair.Key, pair.Value);
+                _matches.Add(pair.Key, pair.Value);
 
             return _matches;
         }

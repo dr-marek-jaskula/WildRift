@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using System.Linq.Expressions;
 using Google.Protobuf.WellKnownTypes;
 using Eltin_Buchard_Keller_Algorithm;
+using System.Xml.Linq;
 
 namespace WildRiftWebAPI
 {
@@ -44,17 +45,7 @@ namespace WildRiftWebAPI
 
         public ChampionDto GetByName(string name)
         {
-            var championNames = _dbContex.Champions.Select(ch => ch.Name).ToList();
-            List<string> championNamesTree = new();
-
-            foreach (var element in championNames)
-                championNamesTree.AddRange(element.Split(new char[] { ' ', '\'' }));
-
-            championNamesTree.AddRange(championNames);
-
-            BKTree tree = new(new(name));
-            tree.AddMultiple(championNamesTree);
-            string approximatedName = tree.FindBestNodeWithDistance(name);
+            string approximatedName = ApproximateName(name);
 
             if (approximatedName is "")
                 throw new NotFoundException("Champion not found");
@@ -216,6 +207,21 @@ namespace WildRiftWebAPI
                     }]).ToString();
                 return spellResult;
             }
+        }
+
+        private string ApproximateName(string name)
+        {
+            var championNames = _dbContex.Champions.Select(ch => ch.Name).ToList();
+            List<string> championNamesTree = new();
+
+            foreach (var element in championNames)
+                championNamesTree.AddRange(element.Split(new char[] { ' ', '\'' }));
+
+            championNamesTree.AddRange(championNames);
+
+            BKTree tree = new(new(name));
+            tree.AddMultiple(championNamesTree);
+            return tree.FindBestNodeWithDistance(name);
         }
 
         private static void Capitalize(ref string input)

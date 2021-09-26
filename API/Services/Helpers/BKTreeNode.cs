@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace Eltin_Buchard_Keller_Algorithm
 {
-    public abstract class BKTreeNode
+    public class BKTreeNode
     {
-        public readonly Dictionary<Int32, BKTreeNode> _children;
         public int Distance { get; set; }
         public string Data { get; private set; }
+     
+        public readonly Dictionary<Int32, BKTreeNode> _children;
 
         public BKTreeNode(string values)
         {
@@ -32,7 +33,7 @@ namespace Eltin_Buchard_Keller_Algorithm
         {
             foreach (var element in list)
             {
-                LevenshteinNode node = new(element);
+                BKTreeNode node = new(element);
 
                 int distance = CalculateDistance(node);
 
@@ -83,6 +84,9 @@ namespace Eltin_Buchard_Keller_Algorithm
                     _children[distance].Query(node, threshold, collected);
         }
 
-        protected abstract int CalculateDistance(BKTreeNode node);
+        protected int CalculateDistance(BKTreeNode node)
+        {
+            return DistanceMetric.CalculateLevenshteinDistance(Data, node.Data);
+        }
     }
 }
