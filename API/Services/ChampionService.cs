@@ -10,6 +10,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using System.Linq.Expressions;
 using Google.Protobuf.WellKnownTypes;
+using Eltin_Buchard_Keller_Algorithm;
 
 namespace WildRiftWebAPI
 {
@@ -43,7 +44,11 @@ namespace WildRiftWebAPI
 
         public ChampionDto GetByName(string name)
         {
-            var champion = _dbContex.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name == name);
+            BKTree tree = new(new(name));
+            tree.AddMultiple(_dbContex.Champions.Select(ch => ch.Name).ToList());
+            string approximatedName = tree.FindBestNodeWithDistance(name);
+
+            var champion = _dbContex.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name.Contains(name) || r.Name == approximatedName);
 
             if (champion is null)
                 throw new NotFoundException("Champion not found");
