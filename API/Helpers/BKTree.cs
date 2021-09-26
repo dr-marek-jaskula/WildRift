@@ -76,10 +76,9 @@ namespace Eltin_Buchard_Keller_Algorithm
         public string FindBestNodeWithDistance(string name)//BKTreeNode node
         {
             int distance = _root.FindBestMatch(_root, Int32.MaxValue, out BKTreeNode bestNode);
-            //int distance = _root.FindBestMatch(node, Int32.MaxValue, out BKTreeNode bestNode);
             _matches.Clear();
             _matches.Add((LevenshteinNode)bestNode, distance);
-            var listOfPossibleResults = _matches.Keys.First()._children.Select(x => x.Value).Where(x => x._children.Count is 0).ToList();
+            var listOfPossibleResults = _matches.Keys.First()._children.Select(x => x.Value).ToList();
             
             foreach (var item in listOfPossibleResults)
                 item.Distance = DistanceMetric.CalculateLevenshteinDistance(item.Data, name);
