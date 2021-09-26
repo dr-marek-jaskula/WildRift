@@ -224,33 +224,3 @@ namespace WildRiftWebAPI
         }
     }
 }
-
-
-/*
-         public ChampionDto GetByName(string name)
-        {
-            var championNames = _dbContex.Champions.Select(ch => ch.Name).ToList();
-            List<string> championNamesTree = new();
-
-            foreach (var element in championNames)
-                championNamesTree.AddRange(element.Split(new char[] { ' ', '\'' }));
-
-            championNamesTree.AddRange(championNames);
-
-            BKTree tree = new(new(name));
-            tree.AddMultiple(championNamesTree);
-            string approximatedName = tree.FindBestNodeWithDistance(name);
-
-            var champions = _dbContex.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
-
-            var champion = champions.FirstOrDefault(r => r.Name.Contains(name)) is not null ? champions.FirstOrDefault(r => r.Name.Contains(name)) : champions.FirstOrDefault(r => r.Name.Contains(approximatedName));
-
-            if (champion is null)
-                throw new NotFoundException("Champion not found");
-
-            champion.ChampionSpells = champion.ChampionSpells.OrderBy(ch => "QWER".IndexOf(ch.Id.Last())).ToList();
-            var result = _mapper.Map<ChampionDto>(champion);
-            return result;
-        }
-
-*/
