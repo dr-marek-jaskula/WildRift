@@ -13,7 +13,7 @@ namespace Eltin_Buchard_Keller_Algorithm
     /// </summary>
     public class BKTree
     {
-        private LevenshteinNode _root;
+        private readonly LevenshteinNode _root;
         private readonly Dictionary<LevenshteinNode, Int32> _matches;
 
         public BKTree(LevenshteinNode initialNode)
@@ -73,7 +73,7 @@ namespace Eltin_Buchard_Keller_Algorithm
         /// </summary>
         /// <param name="node"></param>
         /// <returns>A match that is within the best edit distance of the search node.</returns>
-        public string FindBestNodeWithDistance(string name)//BKTreeNode node
+        public string FindBestNodeWithDistance(string name)
         {
             int distance = _root.FindBestMatch(_root, Int32.MaxValue, out BKTreeNode bestNode);
             _matches.Clear();
@@ -82,8 +82,11 @@ namespace Eltin_Buchard_Keller_Algorithm
             
             foreach (var item in listOfPossibleResults)
                 item.Distance = DistanceMetric.CalculateLevenshteinDistance(item.Data, name);
-            
-            return listOfPossibleResults.OrderBy(x => x.Distance).First().Data;
+
+            if (listOfPossibleResults.OrderBy(x => x.Distance).First().Distance > 10)
+                return "";
+            else
+                return listOfPossibleResults.OrderBy(x => x.Distance).First().Data;
         }
 
         /// <summary>
