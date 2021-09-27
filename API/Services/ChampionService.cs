@@ -10,6 +10,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using System.Linq.Expressions;
 using Google.Protobuf.WellKnownTypes;
+using System.Xml.Linq;
 
 namespace WildRiftWebAPI
 {
@@ -26,13 +27,13 @@ namespace WildRiftWebAPI
 
     public class ChampionService : IChampionService
     {
-        private readonly ChampionDbContext _dbContex;
+        private readonly WildRiftDbContext _dbContex;
         private readonly IMapper _mapper;
         private readonly ILogger<ChampionService> _logger;
         private readonly IAuthorizationService _authorizationService;
         private readonly IUserContextService _userContextService;
 
-        public ChampionService(ChampionDbContext dbContex, IMapper mapper, ILogger<ChampionService> logger, IAuthorizationService authorizationService, IUserContextService userContextService)
+        public ChampionService(WildRiftDbContext dbContex, IMapper mapper, ILogger<ChampionService> logger, IAuthorizationService authorizationService, IUserContextService userContextService)
         {
             _dbContex = dbContex;
             _mapper = mapper;
@@ -43,10 +44,14 @@ namespace WildRiftWebAPI
 
         public ChampionDto GetByName(string name)
         {
-            var champion = _dbContex.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name == name);
+            string approximatedName = Helpers.ApproximateName(name, _dbContex.Champions);
 
-            if (champion is null)
+            if (approximatedName is "")
                 throw new NotFoundException("Champion not found");
+
+            var champions = _dbContex.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
+
+            var champion = champions.FirstOrDefault(r => r.Name.Contains(name)) is not null ? champions.FirstOrDefault(r => r.Name.Contains(name)) : champions.FirstOrDefault(r => r.Name.Contains(approximatedName));
 
             champion.ChampionSpells = champion.ChampionSpells.OrderBy(ch => "QWER".IndexOf(ch.Id.Last())).ToList();
             var result = _mapper.Map<ChampionDto>(champion);
@@ -94,7 +99,7 @@ namespace WildRiftWebAPI
 
         public void Delete(string name)
         {
-            _logger.LogWarning($"Restaurant with id: {name} Delete action invoked");
+            _logger.LogWarning($"Item with name: {name}. Delete action invoked");
 
             var champion = _dbContex.Champions.FirstOrDefault(ch => ch.Name == name);
 
@@ -157,7 +162,7 @@ namespace WildRiftWebAPI
             if (champion is null)
                 throw new NotFoundException("Champion not found");
 
-            Capitalize(ref property);
+            Helpers.Capitalize(ref property);
             var foundProperty = typeof(Champion).GetProperty(property);
 
             if (foundProperty is null)
@@ -174,8 +179,8 @@ namespace WildRiftWebAPI
             if (champion is null)
                 throw new NotFoundException("Champion not found");
 
-            Capitalize(ref property);
-            Capitalize(ref spellType);
+            Helpers.Capitalize(ref property);
+            Helpers.Capitalize(ref spellType);
 
             if (spellType is "Passive")
             {
@@ -201,11 +206,6 @@ namespace WildRiftWebAPI
                     }]).ToString();
                 return spellResult;
             }
-        }
-
-        private static void Capitalize(ref string input)
-        {
-            input = $"{input[0].ToString().ToUpper()}{input[1..].ToLower()}"; //substring to jest input[1..]
         }
     }
 }

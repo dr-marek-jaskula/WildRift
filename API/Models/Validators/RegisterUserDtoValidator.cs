@@ -8,7 +8,7 @@ namespace WildRiftWebAPI
 {
     public class RegisterUserDtoValidator : AbstractValidator<RegisterUserDto>
     {
-        public RegisterUserDtoValidator(ChampionDbContext dbContext)
+        public RegisterUserDtoValidator(WildRiftDbContext dbContext)
         {
             RuleFor(x => x.Email)
                 .NotEmpty()

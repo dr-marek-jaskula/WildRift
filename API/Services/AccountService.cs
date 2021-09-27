@@ -22,11 +22,11 @@ namespace WildRiftWebAPI
 
     public class AccountService : IAccountService
     {
-        private readonly ChampionDbContext _context;
+        private readonly WildRiftDbContext _context;
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly AuthenticationSettings _authenticationSettings;
 
-        public AccountService(ChampionDbContext context, IPasswordHasher<User> passwordHasher, AuthenticationSettings authenticationSettings)
+        public AccountService(WildRiftDbContext context, IPasswordHasher<User> passwordHasher, AuthenticationSettings authenticationSettings)
         {
             _context = context;
             _passwordHasher = passwordHasher;
