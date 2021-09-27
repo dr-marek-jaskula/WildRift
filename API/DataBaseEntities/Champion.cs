@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace WildRiftWebAPI
 {
-    public class Champion
+    public class Champion : IName
     {
         public string Name { get; set; }
         public string Title { get; set; }

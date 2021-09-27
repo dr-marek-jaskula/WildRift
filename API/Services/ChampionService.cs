@@ -10,7 +10,6 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using System.Linq.Expressions;
 using Google.Protobuf.WellKnownTypes;
-using Eltin_Buchard_Keller_Algorithm;
 using System.Xml.Linq;
 
 namespace WildRiftWebAPI
@@ -28,13 +27,13 @@ namespace WildRiftWebAPI
 
     public class ChampionService : IChampionService
     {
-        private readonly ChampionDbContext _dbContex;
+        private readonly WildRiftDbContext _dbContex;
         private readonly IMapper _mapper;
         private readonly ILogger<ChampionService> _logger;
         private readonly IAuthorizationService _authorizationService;
         private readonly IUserContextService _userContextService;
 
-        public ChampionService(ChampionDbContext dbContex, IMapper mapper, ILogger<ChampionService> logger, IAuthorizationService authorizationService, IUserContextService userContextService)
+        public ChampionService(WildRiftDbContext dbContex, IMapper mapper, ILogger<ChampionService> logger, IAuthorizationService authorizationService, IUserContextService userContextService)
         {
             _dbContex = dbContex;
             _mapper = mapper;
@@ -45,7 +44,7 @@ namespace WildRiftWebAPI
 
         public ChampionDto GetByName(string name)
         {
-            string approximatedName = ApproximateName(name);
+            string approximatedName = Helpers.ApproximateName<Champion>(name, _dbContex.Champions);
 
             if (approximatedName is "")
                 throw new NotFoundException("Champion not found");
@@ -100,7 +99,7 @@ namespace WildRiftWebAPI
 
         public void Delete(string name)
         {
-            _logger.LogWarning($"Restaurant with id: {name} Delete action invoked");
+            _logger.LogWarning($"Item with name: {name}. Delete action invoked");
 
             var champion = _dbContex.Champions.FirstOrDefault(ch => ch.Name == name);
 
@@ -163,7 +162,7 @@ namespace WildRiftWebAPI
             if (champion is null)
                 throw new NotFoundException("Champion not found");
 
-            Capitalize(ref property);
+            Helpers.Capitalize(ref property);
             var foundProperty = typeof(Champion).GetProperty(property);
 
             if (foundProperty is null)
@@ -180,8 +179,8 @@ namespace WildRiftWebAPI
             if (champion is null)
                 throw new NotFoundException("Champion not found");
 
-            Capitalize(ref property);
-            Capitalize(ref spellType);
+            Helpers.Capitalize(ref property);
+            Helpers.Capitalize(ref spellType);
 
             if (spellType is "Passive")
             {
@@ -207,26 +206,6 @@ namespace WildRiftWebAPI
                     }]).ToString();
                 return spellResult;
             }
-        }
-
-        private string ApproximateName(string name)
-        {
-            var championNames = _dbContex.Champions.Select(ch => ch.Name).ToList();
-            List<string> championNamesTree = new();
-
-            foreach (var element in championNames)
-                championNamesTree.AddRange(element.Split(new char[] { ' ', '\'' }));
-
-            championNamesTree.AddRange(championNames);
-
-            BKTree tree = new(new(name));
-            tree.AddMultiple(championNamesTree);
-            return tree.FindBestNodeWithDistance(name);
-        }
-
-        private static void Capitalize(ref string input)
-        {
-            input = $"{input[0].ToString().ToUpper()}{input[1..].ToLower()}"; //substring to jest input[1..]
         }
     }
 }

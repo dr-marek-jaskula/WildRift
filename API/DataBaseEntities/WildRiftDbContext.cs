@@ -6,8 +6,9 @@ using System.Runtime.ConstrainedExecution;
 
 namespace WildRiftWebAPI
 {
-    public class ChampionDbContext : DbContext
+    public class WildRiftDbContext : DbContext
     {
+        public DbSet<Item> Items { get; set; }
         public DbSet<Champion> Champions { get; set; }
         public DbSet<ChampionPassive> Champions_Passives { get; set; }
         public DbSet<ChampionSpell> Champions_Spells { get; set; }
@@ -17,6 +18,8 @@ namespace WildRiftWebAPI
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Champion>().HasKey(c => c.Name);
+
+            modelBuilder.Entity<Item>().HasKey(c => c.Name);
 
             modelBuilder.Entity<User>().HasKey(c => c.Username);
 
@@ -36,7 +39,7 @@ namespace WildRiftWebAPI
                         .HasForeignKey<User>(b => b.Role_id);
         }
 
-        public ChampionDbContext(DbContextOptions<ChampionDbContext> options) : base(options)
+        public WildRiftDbContext(DbContextOptions<WildRiftDbContext> options) : base(options)
         {
         }
     }
