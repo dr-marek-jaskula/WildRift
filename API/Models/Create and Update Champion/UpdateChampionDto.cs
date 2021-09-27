@@ -11,6 +11,13 @@ namespace WildRiftWebAPI
     {
 #nullable enable
         public string? Title { get; set; }
+        public string? Lore { get; set; }
+        public string? Tier { get; set; }
+        public int? Difficulty { get; set; }
+        public int? Damage { get; set; }
+        public int? Utility { get; set; }
+        public int? Toughness { get; set; }
+        public string? Roles { get; set; }
         public float? Stats_hp { get; set; }
         public float? Stats_hpperlevel { get; set; }
         public float? Stats_mp { get; set; }
