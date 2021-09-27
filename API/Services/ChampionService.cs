@@ -44,7 +44,7 @@ namespace WildRiftWebAPI
 
         public ChampionDto GetByName(string name)
         {
-            string approximatedName = Helpers.ApproximateName<Champion>(name, _dbContex.Champions);
+            string approximatedName = Helpers.ApproximateName(name, _dbContex.Champions);
 
             if (approximatedName is "")
                 throw new NotFoundException("Champion not found");

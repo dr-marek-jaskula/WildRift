@@ -51,10 +51,7 @@ namespace Eltin_Buchard_Keller_Algorithm
                         cost = 1;
 
                     // Step 6
-                    distance[i, j] =
-                        Math.Min(
-                            Math.Min(distance[i - 1, j] + 1, distance[i, j - 1] + 1),
-                            distance[i - 1, j - 1] + cost);
+                    distance[i, j] = Math.Min(Math.Min(distance[i - 1, j] + 1, distance[i, j - 1] + 1), distance[i - 1, j - 1] + cost);
                 }
             }
             // Step 7

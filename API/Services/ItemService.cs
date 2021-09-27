@@ -43,7 +43,7 @@ namespace WildRiftWebAPI
 
         public ItemDto GetByName(string name)
         {
-            string approximatedName = Helpers.ApproximateName<Item>(name, _dbContex.Items);
+            string approximatedName = Helpers.ApproximateName(name, _dbContex.Items);
 
             if (approximatedName is "")
                 throw new NotFoundException("Item not found");
