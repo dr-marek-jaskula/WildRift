@@ -7,17 +7,10 @@ using System.Collections.Generic;
 
 namespace WildRiftWebAPI
 {
-    public class Champion
+    public class Champion : IName
     {
         public string Name { get; set; }
         public string Title { get; set; }
-        public string Lore { get; set; }
-        public string Tier { get; set; }
-        public int Difficulty { get; set; }
-        public int Damage { get; set; }
-        public int Utility { get; set; }
-        public int Toughness { get; set; }
-        public string Roles { get; set; }
         public string Image_full { get; set; }
         public string Image_sprite { get; set; }
         public string Image_group { get; set; }

@@ -55,7 +55,7 @@ namespace WildRiftWebAPI
             services.AddControllers().AddFluentValidation();
 
             #region DbContex registration
-            services.AddDbContext<ChampionDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("LolWildDbConnection")));
+            services.AddDbContext<WildRiftDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("LolWildDbConnection")));
             #endregion
 
             services.AddAutoMapper(GetType().Assembly); 
@@ -63,6 +63,7 @@ namespace WildRiftWebAPI
             #region Services
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IChampionService, ChampionService>();
+            services.AddScoped<IItemService, ItemService>();
             #endregion
 
             #region Middlewares
@@ -75,6 +76,7 @@ namespace WildRiftWebAPI
             services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
             services.AddScoped<IValidator<UpdateChampion>, UpdateChampionValidator>();
             services.AddScoped<IValidator<ChampionQuery>, ChampionQueryValidator>();
+            services.AddScoped<IValidator<ItemQuery>, ItemQueryValidator>();
             #endregion
 
             #region Context
