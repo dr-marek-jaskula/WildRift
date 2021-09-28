@@ -9,6 +9,7 @@ namespace WildRiftWebAPI
     public class WildRiftDbContext : DbContext
     {
         public DbSet<Item> Items { get; set; }
+        public DbSet<Rune> Runes { get; set; }
         public DbSet<Champion> Champions { get; set; }
         public DbSet<ChampionPassive> Champions_Passives { get; set; }
         public DbSet<ChampionSpell> Champions_Spells { get; set; }
@@ -20,6 +21,8 @@ namespace WildRiftWebAPI
             modelBuilder.Entity<Champion>().HasKey(c => c.Name);
 
             modelBuilder.Entity<Item>().HasKey(c => c.Name);
+
+            modelBuilder.Entity<Rune>().HasKey(c => c.Name);
 
             modelBuilder.Entity<User>().HasKey(c => c.Username);
 
