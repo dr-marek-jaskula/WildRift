@@ -64,6 +64,7 @@ namespace WildRiftWebAPI
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IChampionService, ChampionService>();
             services.AddScoped<IItemService, ItemService>();
+            services.AddScoped<IRuneService, RuneService>();
             #endregion
 
             #region Middlewares
@@ -77,6 +78,7 @@ namespace WildRiftWebAPI
             services.AddScoped<IValidator<UpdateChampion>, UpdateChampionValidator>();
             services.AddScoped<IValidator<ChampionQuery>, ChampionQueryValidator>();
             services.AddScoped<IValidator<ItemQuery>, ItemQueryValidator>();
+            services.AddScoped<IValidator<RuneQuery>, RuneQueryValidator>();
             #endregion
 
             #region Context

@@ -17,6 +17,10 @@ namespace WildRiftWebAPI
             CreateMap<UpdateItemDto, Item>();
             CreateMap<CreateItemDto, Item>();
 
+            CreateMap<Rune, RuneDto>();
+            CreateMap<UpdateRuneDto, Rune>();
+            CreateMap<CreateRuneDto, Rune>();
+
             CreateMap<CreateChampionDto, Champion>()
                 .ForMember(ch => ch.Spell_passive, c => c.MapFrom(dto => $"{dto.Name}Passive"))
                 .ForMember(ch => ch.Spell_q, c => c.MapFrom(dto => $"{dto.Name}Q"))
