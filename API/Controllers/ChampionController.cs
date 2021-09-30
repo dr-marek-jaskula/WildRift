@@ -15,7 +15,6 @@ namespace WildRiftWebAPI
 {
     [Route("api/[controller]")] 
     [Authorize]
-    [ApiController]
     public class ChampionController : ControllerBase
 	{
         private readonly IChampionService _championtService;

@@ -27,7 +27,7 @@ namespace WildRiftWebAPI
 
     public class ChampionService : IChampionService
     {
-        private readonly WildRiftDbContext _dbContex;
+        private readonly WildRiftDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<ChampionService> _logger;
         private readonly IAuthorizationService _authorizationService;
@@ -35,7 +35,7 @@ namespace WildRiftWebAPI
 
         public ChampionService(WildRiftDbContext dbContex, IMapper mapper, ILogger<ChampionService> logger, IAuthorizationService authorizationService, IUserContextService userContextService)
         {
-            _dbContex = dbContex;
+            _context = dbContex;
             _mapper = mapper;
             _logger = logger;
             _authorizationService = authorizationService;
@@ -44,12 +44,12 @@ namespace WildRiftWebAPI
 
         public ChampionDto GetByName(string name)
         {
-            string approximatedName = Helpers.ApproximateName(name, _dbContex.Champions);
+            string approximatedName = Helpers.ApproximateName(name, _context.Champions);
 
             if (approximatedName is "")
                 throw new NotFoundException("Champion not found");
 
-            var champions = _dbContex.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
+            var champions = _context.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
 
             var champion = champions.FirstOrDefault(r => r.Name.Contains(name)) is not null ? champions.FirstOrDefault(r => r.Name.Contains(name)) : champions.FirstOrDefault(r => r.Name.Contains(approximatedName));
 
@@ -60,7 +60,7 @@ namespace WildRiftWebAPI
 
         public PageResult<ChampionDto> GetAll(ChampionQuery query)
         {
-            var baseQuery = _dbContex.Champions
+            var baseQuery = _context.Champions
                 .Include(r => r.ChampionSpells)
                 .Include(r => r.ChampionPassive)
                 .Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower()) || r.Title.ToLower().Contains(query.SearchPhrase.ToLower())));
@@ -101,18 +101,18 @@ namespace WildRiftWebAPI
         {
             _logger.LogWarning($"Item with name: {name}. Delete action invoked");
 
-            var champion = _dbContex.Champions.FirstOrDefault(ch => ch.Name == name);
+            var champion = _context.Champions.FirstOrDefault(ch => ch.Name == name);
 
             if (champion is null)
                 throw new NotFoundException("Champion not found");
 
-            var championPassive = _dbContex.Champions_Passives.FirstOrDefault(ch => ch.Id.Contains(name));
-            var championSpells = _dbContex.Champions_Spells.Where(ch => ch.Id.Contains(name));
+            var championPassive = _context.Champions_Passives.FirstOrDefault(ch => ch.Id.Contains(name));
+            var championSpells = _context.Champions_Spells.Where(ch => ch.Id.Contains(name));
 
-            _dbContex.Champions.Remove(champion);
-            _dbContex.Champions_Passives.Remove(championPassive);
-            _dbContex.Champions_Spells.RemoveRange(championSpells);
-            _dbContex.SaveChanges();
+            _context.Champions.Remove(champion);
+            _context.Champions_Passives.Remove(championPassive);
+            _context.Champions_Spells.RemoveRange(championSpells);
+            _context.SaveChanges();
         }
         
         public void Create(CreateChampion createChampion)
@@ -121,19 +121,19 @@ namespace WildRiftWebAPI
             var championPassive = _mapper.Map<ChampionPassive>(createChampion.CreateChampionPassiveDto);
             var championSpells = _mapper.Map<List<ChampionSpell>>(createChampion.CreateChampionSpellDtos);
 
-            _dbContex.Champions_Passives.Add(championPassive);
-            _dbContex.SaveChanges();
-            _dbContex.Champions_Spells.AddRange(championSpells);
-            _dbContex.SaveChanges();
-            _dbContex.Champions.Add(champion);
-            _dbContex.SaveChanges();
+            _context.Champions_Passives.Add(championPassive);
+            _context.SaveChanges();
+            _context.Champions_Spells.AddRange(championSpells);
+            _context.SaveChanges();
+            _context.Champions.Add(champion);
+            _context.SaveChanges();
         }
         
         public void Update(string name, UpdateChampion updateChampion)
         {
-            var champion = _dbContex.Champions.FirstOrDefault(r => r.Name == name);
-            var championPassive = _dbContex.Champions_Passives.FirstOrDefault(r => r.Id.Contains(name));
-            var championSpells = _dbContex.Champions_Spells.Where(r => r.Id.Contains(name)).ToList();
+            var champion = _context.Champions.FirstOrDefault(r => r.Name == name);
+            var championPassive = _context.Champions_Passives.FirstOrDefault(r => r.Id.Contains(name));
+            var championSpells = _context.Champions_Spells.Where(r => r.Id.Contains(name)).ToList();
 
             if (champion is null) 
                 throw new NotFoundException("Champion not found");
@@ -152,12 +152,12 @@ namespace WildRiftWebAPI
                     if (property.GetValue(spell) is not null && property.Name != "Char")
                         typeof(ChampionSpell).GetProperty(property.Name).SetValue(championSpells.Where(s => s.Id.Last() == spell.Char).First(), property.GetValue(spell));
 
-            _dbContex.SaveChanges();
+            _context.SaveChanges();
         }
 
         public string GetProperty(string name, string property)
         {
-            var champion = _dbContex.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name == name);
+            var champion = _context.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name == name);
 
             if (champion is null)
                 throw new NotFoundException("Champion not found");
@@ -174,7 +174,7 @@ namespace WildRiftWebAPI
 
         public string GetProperty(string name, string spellType, string property)
         {
-            var champion = _dbContex.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name == name);
+            var champion = _context.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name == name);
 
             if (champion is null)
                 throw new NotFoundException("Champion not found");

@@ -15,7 +15,6 @@ namespace WildRiftWebAPI
 {
     [Route("api/[controller]")] 
     [Authorize]
-    [ApiController]
     public class RuneController : ControllerBase
 	{
         private readonly IRuneService _runeService;

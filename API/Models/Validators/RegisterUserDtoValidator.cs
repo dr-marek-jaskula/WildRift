@@ -18,17 +18,17 @@ namespace WildRiftWebAPI
 
             RuleFor(x => x.ConfirmPassword).Equal(e => e.Password); 
 
-            RuleFor(x => x.Email).Custom((value, contex) =>
+            RuleFor(x => x.Email).Custom((value, context) =>
             {
                 bool emialInUse = dbContext.Users.Any(u => u.Email == value);
-                if (emialInUse) contex.AddFailure("Email", "That email is taken");
+                if (emialInUse) context.AddFailure("Email", "That email is taken");
             });
 
-            RuleFor(x => x.Username).Custom((value, contex) =>
+            RuleFor(x => x.Username).Custom((value, context) =>
             {
                 bool usernameInUse = dbContext.Users.Any(u => u.Username == value);
                 if (usernameInUse) 
-                    contex.AddFailure("Username", "That username is taken");
+                    context.AddFailure("Username", "That username is taken");
             });
         }
 
