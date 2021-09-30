@@ -18,8 +18,8 @@ namespace WildRiftWebAPI
             _accountService = accountService;
         }
 
-        [HttpPost("register")]
-        public ActionResult RegisterUser([FromBody] RegisterUserDto dto)
+        [HttpPost("[action]")]
+        public ActionResult Register([FromBody] RegisterUserDto dto)
         {
             _accountService.RegisterUser(dto);
             return Ok();
