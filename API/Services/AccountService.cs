@@ -1,22 +1,19 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using WildRiftWebAPI;
-using AutoMapper;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace WildRiftWebAPI
 {
     public interface IAccountService
     {
         void RegisterUser(RegisterUserDto dto);
+
         string GenerateJwt(LoginDto dto);
     }
 
@@ -55,12 +52,12 @@ namespace WildRiftWebAPI
                 .Include(u => u.Role)
                 .FirstOrDefault(u => u.Username == dto.Username);
 
-            if (user is null) 
+            if (user is null)
                 throw new BadRequestException("Invalid user name or password");
 
             var result = _passwordHasher.VerifyHashedPassword(user, user.Password_hash, dto.Password);
 
-            if (result is PasswordVerificationResult.Failed) 
+            if (result is PasswordVerificationResult.Failed)
                 throw new BadRequestException("Invalid username or password");
 
             var claims = new List<Claim>()
@@ -69,7 +66,7 @@ namespace WildRiftWebAPI
                 new Claim(ClaimTypes.Role, $"{user.Role.Name}"),
                 new Claim("Create_time", user.Create_time.Value.ToString("yyyy-MM-dd")),
             };
-            
+
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authenticationSettings.JwtKey));
 
             var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

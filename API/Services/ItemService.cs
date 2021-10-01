@@ -1,26 +1,24 @@
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NLog.Web;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
 using System.Linq.Expressions;
-using Google.Protobuf.WellKnownTypes;
-using System.Xml.Linq;
 
 namespace WildRiftWebAPI
 {
     public interface IItemService
     {
         ItemDto GetByName(string name);
+
         PageResult<ItemDto> GetAll(ItemQuery query);
+
         void Delete(string name);
+
         void Create(CreateItemDto dto);
+
         void Update(string name, UpdateItemDto updateItem);
+
         string GetProperty(string name, string property);
     }
 
@@ -29,16 +27,12 @@ namespace WildRiftWebAPI
         private readonly WildRiftDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<ItemService> _logger;
-        private readonly IAuthorizationService _authorizationService;
-        private readonly IUserContextService _userContextService;
 
-        public ItemService(WildRiftDbContext dbContex, IMapper mapper, ILogger<ItemService> logger, IAuthorizationService authorizationService, IUserContextService userContextService)
+        public ItemService(WildRiftDbContext dbContex, IMapper mapper, ILogger<ItemService> logger)
         {
             _context = dbContex;
             _mapper = mapper;
             _logger = logger;
-            _authorizationService = authorizationService;
-            _userContextService = userContextService;
         }
 
         public ItemDto GetByName(string name)
@@ -100,7 +94,7 @@ namespace WildRiftWebAPI
             _context.Items.Remove(item);
             _context.SaveChanges();
         }
-        
+
         public void Create(CreateItemDto createItem)
         {
             var item = _mapper.Map<Item>(createItem);
@@ -108,12 +102,12 @@ namespace WildRiftWebAPI
             _context.Items.Add(item);
             _context.SaveChanges();
         }
-        
+
         public void Update(string name, UpdateItemDto updateItem)
         {
             var item = _context.Items.FirstOrDefault(r => r.Name == name);
 
-            if (item is null) 
+            if (item is null)
                 throw new NotFoundException("Item not found");
 
             foreach (var property in updateItem.GetType().GetProperties())

@@ -1,7 +1,4 @@
 using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace WildRiftWebAPI
@@ -16,7 +13,7 @@ namespace WildRiftWebAPI
 
             RuleFor(x => x.Password).MinimumLength(6);
 
-            RuleFor(x => x.ConfirmPassword).Equal(e => e.Password); 
+            RuleFor(x => x.ConfirmPassword).Equal(e => e.Password);
 
             RuleFor(x => x.Email).Custom((value, context) =>
             {
@@ -27,10 +24,9 @@ namespace WildRiftWebAPI
             RuleFor(x => x.Username).Custom((value, context) =>
             {
                 bool usernameInUse = dbContext.Users.Any(u => u.Username == value);
-                if (usernameInUse) 
+                if (usernameInUse)
                     context.AddFailure("Username", "That username is taken");
             });
         }
-
     }
 }

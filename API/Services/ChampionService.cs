@@ -1,27 +1,27 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NLog.Web;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
 using System.Linq.Expressions;
-using Google.Protobuf.WellKnownTypes;
-using System.Xml.Linq;
 
 namespace WildRiftWebAPI
 {
     public interface IChampionService
     {
         ChampionDto GetByName(string name);
+
         PageResult<ChampionDto> GetAll(ChampionQuery query);
+
         void Delete(string name);
+
         void Create(CreateChampion dto);
+
         void Update(string name, UpdateChampion updateChampion);
+
         string GetProperty(string name, string property);
+
         string GetProperty(string name, string spellType, string property);
     }
 
@@ -30,16 +30,12 @@ namespace WildRiftWebAPI
         private readonly WildRiftDbContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<ChampionService> _logger;
-        private readonly IAuthorizationService _authorizationService;
-        private readonly IUserContextService _userContextService;
 
-        public ChampionService(WildRiftDbContext dbContex, IMapper mapper, ILogger<ChampionService> logger, IAuthorizationService authorizationService, IUserContextService userContextService)
+        public ChampionService(WildRiftDbContext dbContex, IMapper mapper, ILogger<ChampionService> logger)
         {
             _context = dbContex;
             _mapper = mapper;
             _logger = logger;
-            _authorizationService = authorizationService;
-            _userContextService = userContextService;
         }
 
         public ChampionDto GetByName(string name)
@@ -114,7 +110,7 @@ namespace WildRiftWebAPI
             _context.Champions_Spells.RemoveRange(championSpells);
             _context.SaveChanges();
         }
-        
+
         public void Create(CreateChampion createChampion)
         {
             var champion = _mapper.Map<Champion>(createChampion.CreateChampionDto);
@@ -128,14 +124,14 @@ namespace WildRiftWebAPI
             _context.Champions.Add(champion);
             _context.SaveChanges();
         }
-        
+
         public void Update(string name, UpdateChampion updateChampion)
         {
             var champion = _context.Champions.FirstOrDefault(r => r.Name == name);
             var championPassive = _context.Champions_Passives.FirstOrDefault(r => r.Id.Contains(name));
             var championSpells = _context.Champions_Spells.Where(r => r.Id.Contains(name)).ToList();
 
-            if (champion is null) 
+            if (champion is null)
                 throw new NotFoundException("Champion not found");
 
             foreach (var property in updateChampion.UpdateChampionDto.GetType().GetProperties())
@@ -149,8 +145,8 @@ namespace WildRiftWebAPI
             foreach (var spell in updateChampion.UpdateChampionSpellDtos)
                 if (spell.Char is null) continue;
                 else foreach (var property in spell.GetType().GetProperties())
-                    if (property.GetValue(spell) is not null && property.Name != "Char")
-                        typeof(ChampionSpell).GetProperty(property.Name).SetValue(championSpells.Where(s => s.Id.Last() == spell.Char).First(), property.GetValue(spell));
+                        if (property.GetValue(spell) is not null && property.Name != "Char")
+                            typeof(ChampionSpell).GetProperty(property.Name).SetValue(championSpells.Where(s => s.Id.Last() == spell.Char).First(), property.GetValue(spell));
 
             _context.SaveChanges();
         }
@@ -197,13 +193,14 @@ namespace WildRiftWebAPI
                 if (spellProperty is null)
                     throw new NotFoundException("Property not found");
 
-                var spellResult = spellProperty.GetValue(champion.ChampionSpells[spellType switch {
-                    "E"  => 0,
-                    "Q"  => 1,
-                    "R"  => 2,
-                    "W"  => 3,
+                var spellResult = spellProperty.GetValue(champion.ChampionSpells[spellType switch
+                {
+                    "E" => 0,
+                    "Q" => 1,
+                    "R" => 2,
+                    "W" => 3,
                     _ => throw new NotFoundException("Spell type not found. It has to be \"Passive\" or \"Q\", \"W\", \"E\", \"R\""),
-                    }]).ToString();
+                }]).ToString();
                 return spellResult;
             }
         }

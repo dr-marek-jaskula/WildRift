@@ -1,26 +1,25 @@
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NLog.Web;
-using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
 using System.Linq.Expressions;
-using Google.Protobuf.WellKnownTypes;
-using System.Xml.Linq;
 
 namespace WildRiftWebAPI
 {
     public interface IRuneService
     {
         RuneDto GetByName(string name);
+
         PageResult<RuneDto> GetAll(RuneQuery query);
+
         void Delete(string name);
+
         void Create(CreateRuneDto dto);
+
         void Update(string name, UpdateRuneDto updateRune);
+
         string GetProperty(string name, string property);
     }
 
@@ -100,7 +99,7 @@ namespace WildRiftWebAPI
             _context.Runes.Remove(rune);
             _context.SaveChanges();
         }
-        
+
         public void Create(CreateRuneDto createRune)
         {
             var rune = _mapper.Map<Rune>(createRune);
@@ -108,12 +107,12 @@ namespace WildRiftWebAPI
             _context.Runes.Add(rune);
             _context.SaveChanges();
         }
-        
+
         public void Update(string name, UpdateRuneDto updateRune)
         {
             var rune = _context.Runes.FirstOrDefault(r => r.Name == name);
 
-            if (rune is null) 
+            if (rune is null)
                 throw new NotFoundException("Rune not found");
 
             foreach (var property in updateRune.GetType().GetProperties())

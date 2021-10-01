@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Eltin_Buchard_Keller_Algorithm
 {
@@ -10,7 +7,7 @@ namespace Eltin_Buchard_Keller_Algorithm
     {
         public int Distance { get; set; }
         public string Data { get; private set; }
-     
+
         public readonly Dictionary<Int32, BKTreeNode> _children;
 
         public BKTreeNode(string values)
@@ -47,7 +44,7 @@ namespace Eltin_Buchard_Keller_Algorithm
         public virtual int FindBestMatch(BKTreeNode node, int bestDistance, out BKTreeNode bestNode)
         {
             int distanceAtNode = CalculateDistance(node);
-                bestNode = node;
+            bestNode = node;
 
             if (distanceAtNode < bestDistance)
             {
