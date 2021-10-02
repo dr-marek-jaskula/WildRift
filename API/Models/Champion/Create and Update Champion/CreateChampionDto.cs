@@ -5,6 +5,7 @@
         public string Name { get; set; }
         public string Title { get; set; }
         public string Lore { get; set; }
+        public bool Available { get; set; }
         public string Tier { get; set; }
         public int Difficulty { get; set; }
         public int Damage { get; set; }
