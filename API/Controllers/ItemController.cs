@@ -15,7 +15,6 @@ namespace WildRiftWebAPI
 {
     [Route("api/[controller]")] 
     [Authorize]
-    [ApiController]
     public class ItemController : ControllerBase
 	{
         private readonly IItemService _itemService;

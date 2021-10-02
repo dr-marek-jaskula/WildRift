@@ -1,6 +1,5 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -9,12 +8,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 
 [assembly: ApiController]
+
 namespace WildRiftWebAPI
 {
     public class Startup
@@ -29,6 +28,7 @@ namespace WildRiftWebAPI
         public void ConfigureServices(IServiceCollection services)
         {
             #region Authenticate
+
             AuthenticationSettings authenticationSettings = new();
             Configuration.GetSection("Authentication").Bind(authenticationSettings);
 
@@ -38,8 +38,7 @@ namespace WildRiftWebAPI
                 option.DefaultAuthenticateScheme = "Bearer";
                 option.DefaultScheme = "Bearer";
                 option.DefaultChallengeScheme = "Bearer";
-
-            }).AddJwtBearer(cfg => 
+            }).AddJwtBearer(cfg =>
             {
                 cfg.RequireHttpsMetadata = false;
                 cfg.SaveToken = true;
@@ -51,58 +50,72 @@ namespace WildRiftWebAPI
                 };
             });
 
-            #endregion
+            #endregion Authenticate
 
             services.AddControllers().AddFluentValidation();
 
             #region DbContex registration
-            services.AddDbContext<WildRiftDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("LolWildDbConnection")));
-            #endregion
 
-            services.AddAutoMapper(GetType().Assembly); 
-            
+            services.AddDbContext<WildRiftDbContext>(options => options.UseMySQL(Configuration.GetConnectionString("LolWildDbConnection")));
+
+            #endregion DbContex registration
+
+            services.AddAutoMapper(GetType().Assembly);
+
             #region Services
+
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IChampionService, ChampionService>();
             services.AddScoped<IItemService, ItemService>();
             services.AddScoped<IRuneService, RuneService>();
-            #endregion
+
+            #endregion Services
 
             #region Middlewares
+
             services.AddScoped<ErrorHandlingMiddleware>();
-            #endregion
+
+            #endregion Middlewares
 
             services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
             #region Validators
+
             services.AddScoped<IValidator<RegisterUserDto>, RegisterUserDtoValidator>();
             services.AddScoped<IValidator<UpdateChampion>, UpdateChampionValidator>();
             services.AddScoped<IValidator<ChampionQuery>, ChampionQueryValidator>();
             services.AddScoped<IValidator<ItemQuery>, ItemQueryValidator>();
             services.AddScoped<IValidator<RuneQuery>, RuneQueryValidator>();
-            #endregion
+
+            #endregion Validators
 
             #region Context
+
             services.AddScoped<IUserContextService, UserContextService>();
             services.AddHttpContextAccessor();
-            #endregion
+
+            #endregion Context
 
             #region Swagger
+
             services.AddSwaggerGen(c =>
                 {
                     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Wild Rift API", Version = "v1" });
                 });
-            #endregion
+
+            #endregion Swagger
 
             #region Corse
+
             services.AddCors(option =>
             {
-                option.AddPolicy("FrontEndClient", builder => 
+                option.AddPolicy("FrontEndClient", builder =>
                 {
-                    builder.AllowAnyMethod().AllowAnyHeader().WithOrigins(Configuration["AllowedOrigins"]); 
+                    builder.AllowAnyMethod().AllowAnyHeader().WithOrigins(Configuration["AllowedOrigins"]);
                 });
             });
-            #endregion
+
+            #endregion Corse
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -112,23 +125,27 @@ namespace WildRiftWebAPI
             app.UseCors("FrontEndClient");
 
             #region Middlewares
+
             app.UseMiddleware<ErrorHandlingMiddleware>();
-            #endregion
+
+            #endregion Middlewares
 
             app.UseAuthentication();
             app.UseHttpsRedirection();
 
             #region Swagger
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Wild Rift API v1"); });
             }
-            #endregion
 
-            app.UseRouting(); 
-            app.UseAuthorization(); 
+            #endregion Swagger
+
+            app.UseRouting();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

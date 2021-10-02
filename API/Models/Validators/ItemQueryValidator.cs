@@ -1,14 +1,12 @@
 using FluentValidation;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace WildRiftWebAPI
 {
     public class ItemQueryValidator : AbstractValidator<ItemQuery>
     {
-        private readonly int[] allowedPageSizes = new[] {5, 10, 15};
+        private readonly int[] allowedPageSizes = new[] { 5, 10, 15 };
         private readonly string[] allowedSortByColumnNames = { nameof(ItemDto.Name), nameof(ItemDto.Colloq) };
 
         public ItemQueryValidator()

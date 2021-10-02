@@ -18,22 +18,17 @@ namespace WildRiftWebAPI
     {
         [HttpGet]
         [ResponseCache(Duration = 1200, VaryByQueryKeys = new[] { "fileName" })]
-        public ActionResult GetFile([FromQuery] string fileName)
+        public ActionResult Get([FromQuery] string fileName)
         {
             var rootPath = Directory.GetCurrentDirectory();
             var filePath = $"{rootPath}/PrivateFiles/{fileName}";
-
-            //pełna scieżka aby nie mylił z kontrolerem
             var fileExists = System.IO.File.Exists(filePath);
 
-            if (!fileExists) return NotFound();
+            if (!fileExists) 
+                return NotFound();
 
             var fileContents = System.IO.File.ReadAllBytes(filePath);
-
-            //musimy dynamicznie zczytać rodzaj pliku
             var contentProvider = new FileExtensionContentTypeProvider();
-
-            //pod zmienną "contentType" będzie krył się typ pliku
             contentProvider.TryGetContentType(fileName, out string contentType);
 
             return File(fileContents, contentType, fileName); 

@@ -1,11 +1,7 @@
-﻿using System;
+﻿using Eltin_Buchard_Keller_Algorithm;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using Eltin_Buchard_Keller_Algorithm;
-using Microsoft.EntityFrameworkCore;
 
 namespace WildRiftWebAPI
 {
@@ -15,7 +11,7 @@ namespace WildRiftWebAPI
     }
 
     public static class Helpers
-{
+    {
         /// <summary>
         /// Approximate name of entity, based on the Levenshtein metric.
         /// </summary>

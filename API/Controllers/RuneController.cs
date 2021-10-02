@@ -1,23 +1,13 @@
-﻿using AutoMapper;
-using Eltin_Buchard_Keller_Algorithm;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WildRiftWebAPI
 {
-    [Route("api/[controller]")] 
+    [Route("api/[controller]")]
     [Authorize]
-    [ApiController]
     public class RuneController : ControllerBase
-	{
+    {
         private readonly IRuneService _runeService;
 
         public RuneController(IRuneService runeService)

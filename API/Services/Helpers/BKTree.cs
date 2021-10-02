@@ -1,10 +1,6 @@
-﻿using Microsoft.VisualBasic;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Eltin_Buchard_Keller_Algorithm
 {
@@ -79,7 +75,7 @@ namespace Eltin_Buchard_Keller_Algorithm
             _matches.Clear();
             _matches.Add(bestNode, distance);
             var listOfPossibleResults = _matches.Keys.First()._children.Select(x => x.Value).ToList();
-            
+
             foreach (var item in listOfPossibleResults)
                 item.Distance = DistanceMetric.CalculateLevenshteinDistance(item.Data, name);
 
