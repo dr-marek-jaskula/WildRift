@@ -1,22 +1,22 @@
 ﻿namespace WildRiftWebAPI
 {
-    public class CreateChampionSpellDto
-    {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public int Maxrank { get; set; }
-        public string Cooldown { get; set; }
-        public string Cost { get; set; }
-        public string CostType { get; set; }
-        public string Spell_range { get; set; }
-        public string Image_full { get; set; }
-        public string Image_sprite { get; set; }
-        public string Image_group { get; set; }
-        public int Image_x { get; set; }
-        public int Image_y { get; set; }
-        public int Image_w { get; set; }
-        public int Image_h { get; set; }
-        public string Resource { get; set; }
-    }
+    public record CreateChampionSpellDto
+    (
+        string Id,
+        string Name,
+        string Description,
+        int Maxrank,
+        string Cooldown,
+        string Cost,
+        string CostType,
+        string Spell_range,
+        string Image_full,
+        string Image_sprite,
+        string Image_group,
+        int Image_x,
+        int Image_y,
+        int Image_w,
+        int Image_h,
+        string Resource
+    );
 }

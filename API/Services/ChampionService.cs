@@ -83,10 +83,10 @@ namespace WildRiftWebAPI
 
             int totalItemsCount = baseQuery.Count();
 
-            var championsDtos = _mapper.Map<List<ChampionDto>>(champions);
+            foreach (var champion in champions)
+                champion.ChampionSpells = champion.ChampionSpells.OrderBy(ch => "QWER".IndexOf(ch.Id.Last())).ToList();
 
-            foreach (var championDto in championsDtos)
-                championDto.ChampionSpells = championDto.ChampionSpells.OrderBy(ch => "QWER".IndexOf(ch.Id.Last())).ToList();
+            var championsDtos = _mapper.Map<List<ChampionDto>>(champions);
 
             var result = new PageResult<ChampionDto>(championsDtos, totalItemsCount, query.PageSize, query.PageNumber);
 
@@ -105,9 +105,9 @@ namespace WildRiftWebAPI
             var championPassive = _context.Champions_Passives.FirstOrDefault(ch => ch.Id.Contains(name));
             var championSpells = _context.Champions_Spells.Where(ch => ch.Id.Contains(name));
 
-            _context.Champions.Remove(champion);
             _context.Champions_Passives.Remove(championPassive);
             _context.Champions_Spells.RemoveRange(championSpells);
+            _context.Champions.Remove(champion);
             _context.SaveChanges();
         }
 
@@ -117,12 +117,13 @@ namespace WildRiftWebAPI
             var championPassive = _mapper.Map<ChampionPassive>(createChampion.CreateChampionPassiveDto);
             var championSpells = _mapper.Map<List<ChampionSpell>>(createChampion.CreateChampionSpellDtos);
 
+            _context.Champions.Add(champion);
+            _context.SaveChanges();
             _context.Champions_Passives.Add(championPassive);
             _context.SaveChanges();
             _context.Champions_Spells.AddRange(championSpells);
             _context.SaveChanges();
-            _context.Champions.Add(champion);
-            _context.SaveChanges();
+
         }
 
         public void Update(string name, UpdateChampion updateChampion)
