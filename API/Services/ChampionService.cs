@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Polly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,55 +43,62 @@ namespace WildRiftWebAPI
         {
             string approximatedName = Helpers.ApproximateName(name, _context.Champions);
 
-            if (approximatedName is "")
-                throw new NotFoundException("Champion not found");
+            return ((Policy)PollyRegister.registry["CacheStrategy"]).Execute(context =>
+            {
+                if (approximatedName is "")
+                    throw new NotFoundException("Champion not found");
 
-            var champions = _context.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
+                var champions = _context.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
 
-            var champion = champions.FirstOrDefault(r => r.Name.Contains(name)) is not null ? champions.FirstOrDefault(r => r.Name.Contains(name)) : champions.FirstOrDefault(r => r.Name.Contains(approximatedName));
+                var champion = champions.FirstOrDefault(r => r.Name.Contains(name)) is not null ? champions.FirstOrDefault(r => r.Name.Contains(name)) : champions.FirstOrDefault(r => r.Name.Contains(approximatedName));
 
-            champion.ChampionSpells = champion.ChampionSpells.OrderBy(ch => "QWER".IndexOf(ch.Id.Last())).ToList();
-            var result = _mapper.Map<ChampionDto>(champion);
-            return result;
+                champion.ChampionSpells = champion.ChampionSpells.OrderBy(ch => "QWER".IndexOf(ch.Id.Last())).ToList();
+                var result = _mapper.Map<ChampionDto>(champion);
+                return result;
+            }, new Context($"{approximatedName}"));
         }
 
         public PageResult<ChampionDto> GetAll(ChampionQuery query)
         {
-            var baseQuery = _context.Champions
-                .Include(r => r.ChampionSpells)
-                .Include(r => r.ChampionPassive)
-                .Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower()) || r.Title.ToLower().Contains(query.SearchPhrase.ToLower())));
-
-            if (!string.IsNullOrEmpty(query.SortBy))
+            return ((Policy)PollyRegister.registry["CacheStrategy"]).Execute(context => 
             {
-                var columnsSelector = new Dictionary<string, Expression<Func<Champion, object>>>
+                var baseQuery = _context.Champions
+                                     .Include(r => r.ChampionSpells)
+                                     .Include(r => r.ChampionPassive)
+                                     .Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower()) || r.Title.ToLower().Contains(query.SearchPhrase.ToLower())));
+
+                if (!string.IsNullOrEmpty(query.SortBy))
                 {
-                    { nameof(Champion.Name), r => r.Name },
-                    { nameof(Champion.Title), r => r.Title },
-                };
+                    var columnsSelector = new Dictionary<string, Expression<Func<Champion, object>>>
+                    {
+                        { nameof(Champion.Name), r => r.Name },
+                        { nameof(Champion.Title), r => r.Title },
+                    };
 
-                var selectedColumn = columnsSelector[query.SortBy];
+                    var selectedColumn = columnsSelector[query.SortBy];
 
-                baseQuery = query.SortDirection == SortDirection.Ascending
-                    ? baseQuery.OrderBy(selectedColumn)
-                    : baseQuery.OrderByDescending(selectedColumn);
-            }
+                    baseQuery = query.SortDirection == SortDirection.Ascending
+                        ? baseQuery.OrderBy(selectedColumn)
+                        : baseQuery.OrderByDescending(selectedColumn);
+                }
 
-            var champions = baseQuery
-                .Skip(query.PageSize * (query.PageNumber - 1))
-                .Take(query.PageSize)
-                .ToList();
+                var champions = baseQuery
+                    .Skip(query.PageSize * (query.PageNumber - 1))
+                    .Take(query.PageSize)
+                    .ToList();
 
-            int totalItemsCount = baseQuery.Count();
+                int totalItemsCount = baseQuery.Count();
 
-            var championsDtos = _mapper.Map<List<ChampionDto>>(champions);
+                foreach (var champion in champions)
+                    champion.ChampionSpells = champion.ChampionSpells.OrderBy(ch => "QWER".IndexOf(ch.Id.Last())).ToList();
 
-            foreach (var championDto in championsDtos)
-                championDto.ChampionSpells = championDto.ChampionSpells.OrderBy(ch => "QWER".IndexOf(ch.Id.Last())).ToList();
+                var championsDtos = _mapper.Map<List<ChampionDto>>(champions);
 
-            var result = new PageResult<ChampionDto>(championsDtos, totalItemsCount, query.PageSize, query.PageNumber);
+                var result = new PageResult<ChampionDto>(championsDtos, totalItemsCount, query.PageSize, query.PageNumber);
 
-            return result;
+                return result;
+
+            }, new Context($"{query}"));
         }
 
         public void Delete(string name)
@@ -105,9 +113,9 @@ namespace WildRiftWebAPI
             var championPassive = _context.Champions_Passives.FirstOrDefault(ch => ch.Id.Contains(name));
             var championSpells = _context.Champions_Spells.Where(ch => ch.Id.Contains(name));
 
-            _context.Champions.Remove(champion);
             _context.Champions_Passives.Remove(championPassive);
             _context.Champions_Spells.RemoveRange(championSpells);
+            _context.Champions.Remove(champion);
             _context.SaveChanges();
         }
 
@@ -117,12 +125,13 @@ namespace WildRiftWebAPI
             var championPassive = _mapper.Map<ChampionPassive>(createChampion.CreateChampionPassiveDto);
             var championSpells = _mapper.Map<List<ChampionSpell>>(createChampion.CreateChampionSpellDtos);
 
+            _context.Champions.Add(champion);
+            _context.SaveChanges();
             _context.Champions_Passives.Add(championPassive);
             _context.SaveChanges();
             _context.Champions_Spells.AddRange(championSpells);
             _context.SaveChanges();
-            _context.Champions.Add(champion);
-            _context.SaveChanges();
+
         }
 
         public void Update(string name, UpdateChampion updateChampion)
@@ -153,56 +162,62 @@ namespace WildRiftWebAPI
 
         public string GetProperty(string name, string property)
         {
-            var champion = _context.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name == name);
+            return ((Policy)PollyRegister.registry["CacheStrategy"]).Execute(context => 
+            { 
+                var champion = _context.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name == name);
 
-            if (champion is null)
-                throw new NotFoundException("Champion not found");
+                if (champion is null)
+                    throw new NotFoundException("Champion not found");
 
-            Helpers.Capitalize(ref property);
-            var foundProperty = typeof(Champion).GetProperty(property);
+                Helpers.Capitalize(ref property);
+                var foundProperty = typeof(Champion).GetProperty(property);
 
-            if (foundProperty is null)
-                throw new NotFoundException("Property not found");
+                if (foundProperty is null)
+                    throw new NotFoundException("Property not found");
 
-            var result = foundProperty.GetValue(champion).ToString();
-            return result;
+                var result = foundProperty.GetValue(champion).ToString();
+                return result;
+            }, new Context($"{name} {property}"));
         }
 
         public string GetProperty(string name, string spellType, string property)
         {
-            var champion = _context.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name == name);
+            return ((Policy)PollyRegister.registry["CacheStrategy"]).Execute(context => 
+            { 
+                var champion = _context.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name == name);
 
-            if (champion is null)
-                throw new NotFoundException("Champion not found");
+                if (champion is null)
+                    throw new NotFoundException("Champion not found");
 
-            Helpers.Capitalize(ref property);
-            Helpers.Capitalize(ref spellType);
+                Helpers.Capitalize(ref property);
+                Helpers.Capitalize(ref spellType);
 
-            if (spellType is "Passive")
-            {
-                var passiveProperty = typeof(ChampionPassive).GetProperty(property);
-                if (passiveProperty is null)
-                    throw new NotFoundException("Property not found");
-                var passiveResult = passiveProperty.GetValue(champion.ChampionPassive).ToString();
-                return passiveResult;
-            }
-            else
-            {
-                var spellProperty = typeof(ChampionSpell).GetProperty(property);
-
-                if (spellProperty is null)
-                    throw new NotFoundException("Property not found");
-
-                var spellResult = spellProperty.GetValue(champion.ChampionSpells[spellType switch
+                if (spellType is "Passive")
                 {
-                    "E" => 0,
-                    "Q" => 1,
-                    "R" => 2,
-                    "W" => 3,
-                    _ => throw new NotFoundException("Spell type not found. It has to be \"Passive\" or \"Q\", \"W\", \"E\", \"R\""),
-                }]).ToString();
-                return spellResult;
-            }
+                    var passiveProperty = typeof(ChampionPassive).GetProperty(property);
+                    if (passiveProperty is null)
+                        throw new NotFoundException("Property not found");
+                    var passiveResult = passiveProperty.GetValue(champion.ChampionPassive).ToString();
+                    return passiveResult;
+                }
+                else
+                {
+                    var spellProperty = typeof(ChampionSpell).GetProperty(property);
+
+                    if (spellProperty is null)
+                        throw new NotFoundException("Property not found");
+
+                    var spellResult = spellProperty.GetValue(champion.ChampionSpells[spellType switch
+                    {
+                        "E" => 0,
+                        "Q" => 1,
+                        "R" => 2,
+                        "W" => 3,
+                        _ => throw new NotFoundException("Spell type not found. It has to be \"Passive\" or \"Q\", \"W\", \"E\", \"R\"."),
+                    }]).ToString();
+                    return spellResult;
+                }
+            }, new Context($"{name} {spellType} {property}"));
         }
     }
 }

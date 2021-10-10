@@ -2,10 +2,10 @@ using System.Collections.Generic;
 
 namespace WildRiftWebAPI
 {
-    public class UpdateChampion
-    {
-        public UpdateChampionDto UpdateChampionDto { get; set; }
-        public UpdateChampionPassiveDto UpdateChampionPassiveDto { get; set; }
-        public List<UpdateChampionSpellDto> UpdateChampionSpellDtos { get; set; }
-    }
+    public record UpdateChampion
+    (
+        UpdateChampionDto UpdateChampionDto,
+        UpdateChampionPassiveDto UpdateChampionPassiveDto,
+        List<UpdateChampionSpellDto> UpdateChampionSpellDtos
+    );
 }

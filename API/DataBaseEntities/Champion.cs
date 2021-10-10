@@ -46,6 +46,7 @@ namespace WildRiftWebAPI
         public string Spell_w { get; set; }
         public string Spell_e { get; set; }
         public string Spell_r { get; set; }
+        public bool Available { get; set; }
 
         public virtual ChampionPassive ChampionPassive { get; set; }
         public virtual List<ChampionSpell> ChampionSpells { get; set; }

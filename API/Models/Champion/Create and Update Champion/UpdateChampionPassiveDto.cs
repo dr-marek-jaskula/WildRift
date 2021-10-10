@@ -1,10 +1,10 @@
 ﻿namespace WildRiftWebAPI
 {
-    public class UpdateChampionPassiveDto
-    {
+    public record UpdateChampionPassiveDto
+    (
 #nullable enable
-        public string? Name { get; set; }
-        public string? Description { get; set; }
+        string? Name,
+        string? Description
 #nullable disable
-    }
+    );
 }
