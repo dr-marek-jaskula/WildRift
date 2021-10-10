@@ -71,6 +71,12 @@ namespace WildRiftWebAPI
 
             #endregion Services
 
+            #region Register Polly Policies
+
+            services.ConfigurePollyPolicies(PollyPolicies.GetPolicies());
+
+            #endregion Register Polly Policies
+
             #region Middlewares
 
             services.AddScoped<ErrorHandlingMiddleware>();
@@ -137,7 +143,6 @@ namespace WildRiftWebAPI
 
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "Wild Rift API v1"); });
             }
