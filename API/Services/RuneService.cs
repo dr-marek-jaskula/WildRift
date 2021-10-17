@@ -62,9 +62,7 @@ namespace WildRiftWebAPI
         {
             var baseQuery = _context.Runes
                 .AsNoTracking()
-                .Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower())))
-                .Skip(query.PageSize * (query.PageNumber - 1))
-                .Take(query.PageSize);
+                .Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower())));
 
             if (!string.IsNullOrEmpty(query.SortBy))
             {
@@ -80,7 +78,11 @@ namespace WildRiftWebAPI
                     : baseQuery.OrderByDescending(selectedColumn);
             }
 
-            var runes = baseQuery.ToList();
+            var runes = baseQuery
+                .Skip(query.PageSize * (query.PageNumber - 1))
+                .Take(query.PageSize)
+                .ToList();
+
             int totalRunesCount = baseQuery.Count();
 
             var runeDtos = _mapper.Map<List<RuneDto>>(runes);

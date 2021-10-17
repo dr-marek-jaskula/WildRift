@@ -69,9 +69,7 @@ namespace WildRiftWebAPI
                     .AsNoTracking()
                     .Include(r => r.ChampionSpells)
                     .Include(r => r.ChampionPassive)
-                    .Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower()) || r.Title.ToLower().Contains(query.SearchPhrase.ToLower())))
-                    .Skip(query.PageSize * (query.PageNumber - 1))
-                    .Take(query.PageSize);
+                    .Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower()) || r.Title.ToLower().Contains(query.SearchPhrase.ToLower())));
 
                 if (!string.IsNullOrEmpty(query.SortBy))
                 {
@@ -88,7 +86,11 @@ namespace WildRiftWebAPI
                         : baseQuery.OrderByDescending(selectedColumn);
                 }
 
-                var champions = baseQuery.ToList();
+                var champions = baseQuery
+                    .Skip(query.PageSize * (query.PageNumber - 1))
+                    .Take(query.PageSize)
+                    .ToList();
+
                 int totalItemsCount = baseQuery.Count();
 
                 foreach (var champion in champions)
