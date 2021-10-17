@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -47,7 +48,9 @@ namespace WildRiftWebAPI
             if (approximatedName is "")
                 throw new NotFoundException("Rune not found");
 
-            var runes = _context.Runes.Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
+            var runes = _context.Runes
+                .AsNoTracking()
+                .Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
 
             var rune = runes.FirstOrDefault(r => r.Name.Contains(name)) is not null ? runes.FirstOrDefault(r => r.Name.Contains(name)) : runes.FirstOrDefault(r => r.Name.Contains(approximatedName));
 
@@ -57,7 +60,11 @@ namespace WildRiftWebAPI
 
         public PageResult<RuneDto> GetAll(RuneQuery query)
         {
-            var baseQuery = _context.Runes.Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower())));
+            var baseQuery = _context.Runes
+                .AsNoTracking()
+                .Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower())))
+                .Skip(query.PageSize * (query.PageNumber - 1))
+                .Take(query.PageSize);
 
             if (!string.IsNullOrEmpty(query.SortBy))
             {
@@ -73,11 +80,7 @@ namespace WildRiftWebAPI
                     : baseQuery.OrderByDescending(selectedColumn);
             }
 
-            var runes = baseQuery
-                .Skip(query.PageSize * (query.PageNumber - 1))
-                .Take(query.PageSize)
-                .ToList();
-
+            var runes = baseQuery.ToList();
             int totalRunesCount = baseQuery.Count();
 
             var runeDtos = _mapper.Map<List<RuneDto>>(runes);

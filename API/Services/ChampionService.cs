@@ -48,7 +48,10 @@ namespace WildRiftWebAPI
                 if (approximatedName is "")
                     throw new NotFoundException("Champion not found");
 
-                var champions = _context.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
+                var champions = _context.Champions
+                    .AsNoTracking()
+                    .Include(r => r.ChampionSpells)
+                    .Include(r => r.ChampionPassive).Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
 
                 var champion = champions.FirstOrDefault(r => r.Name.Contains(name)) is not null ? champions.FirstOrDefault(r => r.Name.Contains(name)) : champions.FirstOrDefault(r => r.Name.Contains(approximatedName));
 
@@ -63,9 +66,12 @@ namespace WildRiftWebAPI
             return ((Policy)PollyRegister.registry["CacheStrategy"]).Execute(context => 
             {
                 var baseQuery = _context.Champions
-                                     .Include(r => r.ChampionSpells)
-                                     .Include(r => r.ChampionPassive)
-                                     .Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower()) || r.Title.ToLower().Contains(query.SearchPhrase.ToLower())));
+                    .AsNoTracking()
+                    .Include(r => r.ChampionSpells)
+                    .Include(r => r.ChampionPassive)
+                    .Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower()) || r.Title.ToLower().Contains(query.SearchPhrase.ToLower())))
+                    .Skip(query.PageSize * (query.PageNumber - 1))
+                    .Take(query.PageSize);
 
                 if (!string.IsNullOrEmpty(query.SortBy))
                 {
@@ -82,11 +88,7 @@ namespace WildRiftWebAPI
                         : baseQuery.OrderByDescending(selectedColumn);
                 }
 
-                var champions = baseQuery
-                    .Skip(query.PageSize * (query.PageNumber - 1))
-                    .Take(query.PageSize)
-                    .ToList();
-
+                var champions = baseQuery.ToList();
                 int totalItemsCount = baseQuery.Count();
 
                 foreach (var champion in champions)
