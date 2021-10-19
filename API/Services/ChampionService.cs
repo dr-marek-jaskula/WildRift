@@ -107,8 +107,6 @@ namespace WildRiftWebAPI
 
         public void Delete(string name)
         {
-            _logger.LogWarning($"Item with name: {name}. Delete action invoked");
-
             var champion = _context.Champions.FirstOrDefault(ch => ch.Name == name);
 
             if (champion is null)
