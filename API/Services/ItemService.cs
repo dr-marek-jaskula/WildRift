@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -42,7 +43,9 @@ namespace WildRiftWebAPI
             if (approximatedName is "")
                 throw new NotFoundException("Item not found");
 
-            var items = _context.Items.Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
+            var items = _context.Items
+                .AsNoTracking()
+                .Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
 
             var item = items.FirstOrDefault(r => r.Name.Contains(name)) is not null ? items.FirstOrDefault(r => r.Name.Contains(name)) : items.FirstOrDefault(r => r.Name.Contains(approximatedName));
 
@@ -52,7 +55,9 @@ namespace WildRiftWebAPI
 
         public PageResult<ItemDto> GetAll(ItemQuery query)
         {
-            var baseQuery = _context.Items.Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower())));
+            var baseQuery = _context.Items
+                .AsNoTracking()
+                .Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower())));
 
             if (!string.IsNullOrEmpty(query.SortBy))
             {
@@ -70,7 +75,7 @@ namespace WildRiftWebAPI
 
             var items = baseQuery
                 .Skip(query.PageSize * (query.PageNumber - 1))
-                .Take(query.PageSize)
+                .Take(query.PageSize)          
                 .ToList();
 
             int totalItemsCount = baseQuery.Count();

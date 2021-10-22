@@ -30,13 +30,11 @@ namespace WildRiftWebAPI
     {
         private readonly WildRiftDbContext _context;
         private readonly IMapper _mapper;
-        private readonly ILogger<ChampionService> _logger;
 
-        public ChampionService(WildRiftDbContext dbContex, IMapper mapper, ILogger<ChampionService> logger)
+        public ChampionService(WildRiftDbContext dbContex, IMapper mapper)
         {
             _context = dbContex;
             _mapper = mapper;
-            _logger = logger;
         }
 
         public ChampionDto GetByName(string name)
@@ -48,7 +46,10 @@ namespace WildRiftWebAPI
                 if (approximatedName is "")
                     throw new NotFoundException("Champion not found");
 
-                var champions = _context.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
+                var champions = _context.Champions
+                    .AsNoTracking()
+                    .Include(r => r.ChampionSpells)
+                    .Include(r => r.ChampionPassive).Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
 
                 var champion = champions.FirstOrDefault(r => r.Name.Contains(name)) is not null ? champions.FirstOrDefault(r => r.Name.Contains(name)) : champions.FirstOrDefault(r => r.Name.Contains(approximatedName));
 
@@ -63,9 +64,10 @@ namespace WildRiftWebAPI
             return ((Policy)PollyRegister.registry["CacheStrategy"]).Execute(context => 
             {
                 var baseQuery = _context.Champions
-                                     .Include(r => r.ChampionSpells)
-                                     .Include(r => r.ChampionPassive)
-                                     .Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower()) || r.Title.ToLower().Contains(query.SearchPhrase.ToLower())));
+                    .AsNoTracking()
+                    .Include(r => r.ChampionSpells)
+                    .Include(r => r.ChampionPassive)
+                    .Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower()) || r.Title.ToLower().Contains(query.SearchPhrase.ToLower())));
 
                 if (!string.IsNullOrEmpty(query.SortBy))
                 {
@@ -103,8 +105,6 @@ namespace WildRiftWebAPI
 
         public void Delete(string name)
         {
-            _logger.LogWarning($"Item with name: {name}. Delete action invoked");
-
             var champion = _context.Champions.FirstOrDefault(ch => ch.Name == name);
 
             if (champion is null)

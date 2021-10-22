@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WildRiftWebAPI;
+﻿using System.IO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,10 +8,13 @@ namespace WildRiftWebAPI
 {
     [Route("file")]
     [Authorize(Roles = "Admin")]
+    [ApiVersion("1.0")]
     public class FileController : ControllerBase
     {
         [HttpGet]
         [ResponseCache(Duration = 1200, VaryByQueryKeys = new[] { "fileName" })]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult Get([FromQuery] string fileName)
         {
             var rootPath = Directory.GetCurrentDirectory();
@@ -35,6 +32,8 @@ namespace WildRiftWebAPI
         }
 
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult Upload([FromForm] IFormFile file)
         {
             if (file is not null && file.Length > 0)
