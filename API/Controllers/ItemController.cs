@@ -1,52 +1,79 @@
-﻿using System.IO;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.StaticFiles;
+using System.Collections.Generic;
 
 namespace WildRiftWebAPI
 {
-    [Route("file")]
-    [Authorize(Roles = "Admin")]
+    [Route("api/[controller]")]
+    [Authorize]
     [ApiVersion("1.0")]
-    public class FileController : ControllerBase
+    public class ItemController : ControllerBase
     {
-        [HttpGet]
-        [ResponseCache(Duration = 1200, VaryByQueryKeys = new[] { "fileName" })]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult Get([FromQuery] string fileName)
+        private readonly IItemService _itemService;
+
+        public ItemController(IItemService itemService)
         {
-            var rootPath = Directory.GetCurrentDirectory();
-            var filePath = $"{rootPath}/PrivateFiles/{fileName}";
-            var fileExists = System.IO.File.Exists(filePath);
+            _itemService = itemService;
+        }
 
-            if (!fileExists)
-                return NotFound();
+        [HttpGet("{name}/{property}")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<string> GetProperty([FromRoute] string name, [FromRoute] string property)
+        {
+            var itemProperyDto = _itemService.GetProperty(name, property);
+            return Ok(itemProperyDto);
+        }
 
-            var fileContents = System.IO.File.ReadAllBytes(filePath);
-            var contentProvider = new FileExtensionContentTypeProvider();
-            contentProvider.TryGetContentType(fileName, out string contentType);
+        [HttpGet("{name}", Name = "GetItemByName")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ItemDto))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<ItemDto> GetItemByName([FromRoute] string name)
+        {
+            var itemDto = _itemService.GetByName(name);
+            return Ok(itemDto);
+        }
 
-            return File(fileContents, contentType, fileName);
+        [HttpGet]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ItemDto>))]
+        public ActionResult<IEnumerable<ItemDto>> GetAll([FromQuery] ItemQuery query)
+        {
+            var itemDtos = _itemService.GetAll(query);
+            return Ok(itemDtos);
+        }
+
+        [HttpDelete("{name}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult Delete([FromRoute] string name)
+        {
+            _itemService.Delete(name);
+            return NoContent();
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(CreateItemDto))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult Create([FromBody] CreateItemDto createItem)
+        {
+            _itemService.Create(createItem);
+            return CreatedAtAction(nameof(GetItemByName), new { name = createItem.Name }, createItem);
+        }
+
+        [HttpPut("{name}")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult Upload([FromForm] IFormFile file)
+        public ActionResult Update([FromRoute] string name, [FromBody] UpdateItemDto updateItem)
         {
-            if (file is not null && file.Length > 0)
-            {
-                var rootPath = Directory.GetCurrentDirectory();
-                var fileName = file.FileName;
-                var fullPath = $"{rootPath}/PrivateFiles/{fileName}";
-
-                using var stream = new FileStream(fullPath, FileMode.Create);
-                file.CopyTo(stream);
-                return Ok();
-            }
-            return BadRequest();
+            _itemService.Update(name, updateItem);
+            return Ok();
         }
     }
 }
