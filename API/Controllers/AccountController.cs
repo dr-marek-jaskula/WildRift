@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace WildRiftWebAPI
 {
     [Route("api/[controller]")]
+    [ApiVersion("1.0")]
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;

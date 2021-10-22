@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WildRiftWebAPI;
+﻿using System.IO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +8,7 @@ namespace WildRiftWebAPI
 {
     [Route("file")]
     [Authorize(Roles = "Admin")]
+    [ApiVersion("1.0")]
     public class FileController : ControllerBase
     {
         [HttpGet]

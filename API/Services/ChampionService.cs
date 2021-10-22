@@ -30,13 +30,11 @@ namespace WildRiftWebAPI
     {
         private readonly WildRiftDbContext _context;
         private readonly IMapper _mapper;
-        private readonly ILogger<ChampionService> _logger;
 
-        public ChampionService(WildRiftDbContext dbContex, IMapper mapper, ILogger<ChampionService> logger)
+        public ChampionService(WildRiftDbContext dbContex, IMapper mapper)
         {
             _context = dbContex;
             _mapper = mapper;
-            _logger = logger;
         }
 
         public ChampionDto GetByName(string name)

@@ -13,7 +13,6 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 
 [assembly: ApiController]
-
 namespace WildRiftWebAPI
 {
     public class Startup
@@ -53,6 +52,12 @@ namespace WildRiftWebAPI
             #endregion Authenticate
 
             services.AddControllers().AddFluentValidation();
+
+            services.AddApiVersioning(options => 
+            {
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.DefaultApiVersion = ApiVersion.Default;
+            });
 
             #region DbContex registration
 

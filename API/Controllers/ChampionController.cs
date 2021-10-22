@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 
 namespace WildRiftWebAPI
 {
     [Route("api/[controller]")]
     [Authorize]
+    [ApiVersion("1.0")]
     public class ChampionController : ControllerBase
     {
         private readonly IChampionService _championtService;
