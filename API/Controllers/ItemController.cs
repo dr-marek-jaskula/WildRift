@@ -1,66 +1,52 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.IO;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace WildRiftWebAPI
 {
-    [Route("api/[controller]")] 
-    [Authorize]
-    public class ItemController : ControllerBase
-	{
-        private readonly IItemService _itemService;
-
-        public ItemController(IItemService itemService)
-        {
-            _itemService = itemService;
-        }
-
-        [HttpGet("{name}/{property}")]
-        [AllowAnonymous]
-        public ActionResult<string> GetProperty([FromRoute] string name, [FromRoute] string property)
-        {
-            var itemProperyDto = _itemService.GetProperty(name, property);
-            return Ok(itemProperyDto);
-        }
-
-        [HttpGet("{name}")]
-        [AllowAnonymous]
-        public ActionResult<ChampionDto> Get([FromRoute] string name)
-        {
-            var itemDto = _itemService.GetByName(name);
-            return Ok(itemDto);
-        }
-
+    [Route("file")]
+    [Authorize(Roles = "Admin")]
+    [ApiVersion("1.0")]
+    public class FileController : ControllerBase
+    {
         [HttpGet]
-        [AllowAnonymous]
-        public ActionResult<IEnumerable<ChampionDto>> GetAll([FromQuery] ItemQuery query)
+        [ResponseCache(Duration = 1200, VaryByQueryKeys = new[] { "fileName" })]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult Get([FromQuery] string fileName)
         {
-            var itemDtos = _itemService.GetAll(query);
-            return Ok(itemDtos);
-        }
+            var rootPath = Directory.GetCurrentDirectory();
+            var filePath = $"{rootPath}/PrivateFiles/{fileName}";
+            var fileExists = System.IO.File.Exists(filePath);
 
-        [HttpDelete("{name}")]
-        [Authorize(Roles = "Admin")]
-        public ActionResult Delete([FromRoute] string name)
-        {
-            _itemService.Delete(name);
-            return NoContent();
+            if (!fileExists)
+                return NotFound();
+
+            var fileContents = System.IO.File.ReadAllBytes(filePath);
+            var contentProvider = new FileExtensionContentTypeProvider();
+            contentProvider.TryGetContentType(fileName, out string contentType);
+
+            return File(fileContents, contentType, fileName);
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
-        public ActionResult Create([FromBody] CreateItemDto createItem)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult Upload([FromForm] IFormFile file)
         {
-            _itemService.Create(createItem);
-            return Created($"/api/champion/{createItem.Name}", null);
-        }
+            if (file is not null && file.Length > 0)
+            {
+                var rootPath = Directory.GetCurrentDirectory();
+                var fileName = file.FileName;
+                var fullPath = $"{rootPath}/PrivateFiles/{fileName}";
 
-        [HttpPut("{name}")]
-        [Authorize(Roles = "Admin")]
-        public ActionResult Update([FromRoute] string name, [FromBody] UpdateItemDto updateItem)
-        {
-            _itemService.Update(name, updateItem);
-            return Ok();
+                using var stream = new FileStream(fullPath, FileMode.Create);
+                file.CopyTo(stream);
+                return Ok();
+            }
+            return BadRequest();
         }
     }
 }
