@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Xml.Linq;
 
 namespace WildRiftWebAPI
 {
@@ -24,6 +25,8 @@ namespace WildRiftWebAPI
         string GetProperty(string name, string property);
 
         string GetProperty(string name, string spellType, string property);
+
+        List<string> GetAllNames();
     }
 
     public class ChampionService : IChampionService
@@ -218,6 +221,14 @@ namespace WildRiftWebAPI
                     return spellResult;
                 }
             }, new Context($"{name} {spellType} {property}"));
+        }
+
+        public List<string> GetAllNames()
+        {
+            return _context.Champions
+                .AsNoTracking()
+                .Select(champion => champion.Name)
+                .ToList();
         }
     }
 }

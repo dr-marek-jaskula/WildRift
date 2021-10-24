@@ -56,6 +56,15 @@ namespace WildRiftWebAPI
             return Ok(championsDtos);
         }
 
+        [HttpGet("Names")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<string>))]
+        public ActionResult<IEnumerable<string>> GetAllNames()
+        {
+            var championNames = _championtService.GetAllNames();
+            return Ok(championNames);
+        }
+
         [HttpDelete("{name}")]
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
