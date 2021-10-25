@@ -51,13 +51,13 @@ namespace WildRiftWebAPI
 
                 var champions = _context.Champions
                     .AsNoTracking()
-                    .Include(champion => champion.ChampionSpells)
-                    .Include(champion => champion.ChampionPassive)
-                    .Where(champion => champion.Name.Contains(name) || champion.Name.Contains(approximatedName));
+                    .Include(ch => ch.ChampionSpells)
+                    .Include(ch => ch.ChampionPassive)
+                    .Where(ch => ch.Name.Contains(name) || ch.Name.Contains(approximatedName));
 
-                var champion = champions.FirstOrDefault(r => r.Name.Contains(name)) is not null 
-                    ? champions.FirstOrDefault(r => r.Name.Contains(name)) 
-                    : champions.FirstOrDefault(r => r.Name.Contains(approximatedName));
+                var champion = champions.FirstOrDefault(ch => ch.Name.Contains(name)) is not null 
+                    ? champions.FirstOrDefault(ch => ch.Name.Contains(name)) 
+                    : champions.FirstOrDefault(ch => ch.Name.Contains(approximatedName));
 
                 champion.ChampionSpells = champion.ChampionSpells
                     .OrderBy(championSpell => "QWER".IndexOf(championSpell.Id.Last()))
@@ -74,16 +74,16 @@ namespace WildRiftWebAPI
             {
                 var baseQuery = _context.Champions
                     .AsNoTracking()
-                    .Include(champion => champion.ChampionSpells)
-                    .Include(champion => champion.ChampionPassive)
-                    .Where(champion => query.SearchPhrase == null || (champion.Name.ToLower().Contains(query.SearchPhrase.ToLower()) || champion.Title.ToLower().Contains(query.SearchPhrase.ToLower())));
+                    .Include(ch => ch.ChampionSpells)
+                    .Include(ch => ch.ChampionPassive)
+                    .Where(ch => query.SearchPhrase == null || (ch.Name.ToLower().Contains(query.SearchPhrase.ToLower()) || ch.Title.ToLower().Contains(query.SearchPhrase.ToLower())));
 
                 if (!string.IsNullOrEmpty(query.SortBy))
                 {
                     var columnsSelector = new Dictionary<string, Expression<Func<Champion, object>>>
                     {
-                        { nameof(Champion.Name), champion => champion.Name },
-                        { nameof(Champion.Title), champion => champion.Title },
+                        { nameof(Champion.Name), ch => ch.Name },
+                        { nameof(Champion.Title), ch => ch.Title },
                     };
 
                     var selectedColumn = columnsSelector[query.SortBy];
@@ -145,9 +145,9 @@ namespace WildRiftWebAPI
 
         public void Update(string name, UpdateChampion updateChampion)
         {
-            var champion = _context.Champions.FirstOrDefault(r => r.Name == name);
-            var championPassive = _context.Champions_Passives.FirstOrDefault(r => r.Id.Contains(name));
-            var championSpells = _context.Champions_Spells.Where(r => r.Id.Contains(name)).ToList();
+            var champion = _context.Champions.FirstOrDefault(ch => ch.Name == name);
+            var championPassive = _context.Champions_Passives.FirstOrDefault(ch => ch.Id.Contains(name));
+            var championSpells = _context.Champions_Spells.Where(ch => ch.Id.Contains(name)).ToList();
 
             if (champion is null)
                 throw new NotFoundException("Champion not found");
@@ -173,7 +173,7 @@ namespace WildRiftWebAPI
         {
             return ((Policy)PollyRegister.registry["CacheStrategy"]).Execute(context => 
             { 
-                var champion = _context.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name == name);
+                var champion = _context.Champions.Include(ch => ch.ChampionSpells).Include(ch => ch.ChampionPassive).FirstOrDefault(ch => ch.Name == name);
 
                 if (champion is null)
                     throw new NotFoundException("Champion not found");
@@ -193,7 +193,7 @@ namespace WildRiftWebAPI
         {
             return ((Policy)PollyRegister.registry["CacheStrategy"]).Execute(context => 
             { 
-                var champion = _context.Champions.Include(r => r.ChampionSpells).Include(r => r.ChampionPassive).FirstOrDefault(r => r.Name == name);
+                var champion = _context.Champions.Include(ch => ch.ChampionSpells).Include(ch => ch.ChampionPassive).FirstOrDefault(ch => ch.Name == name);
 
                 if (champion is null)
                     throw new NotFoundException("Champion not found");
@@ -233,7 +233,7 @@ namespace WildRiftWebAPI
         {
             return _context.Champions
                 .AsNoTracking()
-                .Select(champion => champion.Name)
+                .Select(ch => ch.Name)
                 .ToList();
         }
     }

@@ -44,11 +44,11 @@ namespace WildRiftWebAPI
 
             var runes = _context.Runes
                 .AsNoTracking()
-                .Where(rune => rune.Name.Contains(name) || rune.Name.Contains(approximatedName));
+                .Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
 
-            var rune = runes.FirstOrDefault(rune => rune.Name.Contains(name)) is not null 
-                ? runes.FirstOrDefault(rune => rune.Name.Contains(name)) 
-                : runes.FirstOrDefault(rune => rune.Name.Contains(approximatedName));
+            var rune = runes.FirstOrDefault(r => r.Name.Contains(name)) is not null 
+                ? runes.FirstOrDefault(r => r.Name.Contains(name)) 
+                : runes.FirstOrDefault(r => r.Name.Contains(approximatedName));
 
             var result = _mapper.Map<RuneDto>(rune);
             return result;
@@ -58,13 +58,13 @@ namespace WildRiftWebAPI
         {
             var baseQuery = _context.Runes
                 .AsNoTracking()
-                .Where(rune => query.SearchPhrase == null || (rune.Name.ToLower().Contains(query.SearchPhrase.ToLower())));
+                .Where(r => query.SearchPhrase == null || r.Name.ToLower().Contains(query.SearchPhrase.ToLower()));
 
             if (!string.IsNullOrEmpty(query.SortBy))
             {
                 var columnsSelector = new Dictionary<string, Expression<Func<Rune, object>>>
                 {
-                    { nameof(Rune.Name), rune => rune.Name },
+                    { nameof(Rune.Name), r => r.Name },
                 };
 
                 var selectedColumn = columnsSelector[query.SortBy];
@@ -90,7 +90,7 @@ namespace WildRiftWebAPI
 
         public void Delete(string name)
         {
-            var rune = _context.Runes.FirstOrDefault(rune => rune.Name == name);
+            var rune = _context.Runes.FirstOrDefault(r => r.Name == name);
 
             if (rune is null)
                 throw new NotFoundException("Rune not found");
@@ -109,7 +109,7 @@ namespace WildRiftWebAPI
 
         public void Update(string name, UpdateRuneDto updateRune)
         {
-            var rune = _context.Runes.FirstOrDefault(rune => rune.Name == name);
+            var rune = _context.Runes.FirstOrDefault(r => r.Name == name);
 
             if (rune is null)
                 throw new NotFoundException("Rune not found");
@@ -123,7 +123,7 @@ namespace WildRiftWebAPI
 
         public string GetProperty(string name, string property)
         {
-            var rune = _context.Runes.FirstOrDefault(rune => rune.Name == name);
+            var rune = _context.Runes.FirstOrDefault(r => r.Name == name);
 
             if (rune is null)
                 throw new NotFoundException("Rune not found");

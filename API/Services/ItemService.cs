@@ -43,11 +43,11 @@ namespace WildRiftWebAPI
 
             var items = _context.Items
                 .AsNoTracking()
-                .Where(item => item.Name.Contains(name) || item.Name.Contains(approximatedName));
+                .Where(i => i.Name.Contains(name) || i.Name.Contains(approximatedName));
 
-            var item = items.FirstOrDefault(item => item.Name.Contains(name)) is not null 
-                ? items.FirstOrDefault(r => r.Name.Contains(name)) 
-                : items.FirstOrDefault(r => r.Name.Contains(approximatedName));
+            var item = items.FirstOrDefault(i => i.Name.Contains(name)) is not null 
+                ? items.FirstOrDefault(i => i.Name.Contains(name)) 
+                : items.FirstOrDefault(i => i.Name.Contains(approximatedName));
 
             var result = _mapper.Map<ItemDto>(item);
             return result;
@@ -57,13 +57,13 @@ namespace WildRiftWebAPI
         {
             var baseQuery = _context.Items
                 .AsNoTracking()
-                .Where(item => query.SearchPhrase == null || (item.Name.ToLower().Contains(query.SearchPhrase.ToLower())));
+                .Where(i => query.SearchPhrase == null || i.Name.ToLower().Contains(query.SearchPhrase.ToLower()));
 
             if (!string.IsNullOrEmpty(query.SortBy))
             {
                 var columnsSelector = new Dictionary<string, Expression<Func<Item, object>>>
                 {
-                    { nameof(Item.Name), item => item.Name },
+                    { nameof(Item.Name), i => i.Name },
                 };
 
                 var selectedColumn = columnsSelector[query.SortBy];
@@ -89,7 +89,7 @@ namespace WildRiftWebAPI
 
         public void Delete(string name)
         {
-            var item = _context.Items.FirstOrDefault(item => item.Name == name);
+            var item = _context.Items.FirstOrDefault(i => i.Name == name);
 
             if (item is null)
                 throw new NotFoundException("Item not found");
@@ -108,7 +108,7 @@ namespace WildRiftWebAPI
 
         public void Update(string name, UpdateItemDto updateItem)
         {
-            var item = _context.Items.FirstOrDefault(item => item.Name == name);
+            var item = _context.Items.FirstOrDefault(i => i.Name == name);
 
             if (item is null)
                 throw new NotFoundException("Item not found");
@@ -122,7 +122,7 @@ namespace WildRiftWebAPI
 
         public string GetProperty(string name, string property)
         {
-            var item = _context.Items.FirstOrDefault(item => item.Name == name);
+            var item = _context.Items.FirstOrDefault(i => i.Name == name);
 
             if (item is null)
                 throw new NotFoundException("Item not found");
