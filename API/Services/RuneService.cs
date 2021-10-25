@@ -28,17 +28,11 @@ namespace WildRiftWebAPI
     {
         private readonly WildRiftDbContext _context;
         private readonly IMapper _mapper;
-        private readonly ILogger<RuneService> _logger;
-        private readonly IAuthorizationService _authorizationService;
-        private readonly IUserContextService _userContextService;
 
-        public RuneService(WildRiftDbContext dbContex, IMapper mapper, ILogger<RuneService> logger, IAuthorizationService authorizationService, IUserContextService userContextService)
+        public RuneService(WildRiftDbContext dbContex, IMapper mapper)
         {
             _context = dbContex;
             _mapper = mapper;
-            _logger = logger;
-            _authorizationService = authorizationService;
-            _userContextService = userContextService;
         }
 
         public RuneDto GetByName(string name)
@@ -50,9 +44,11 @@ namespace WildRiftWebAPI
 
             var runes = _context.Runes
                 .AsNoTracking()
-                .Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
+                .Where(rune => rune.Name.Contains(name) || rune.Name.Contains(approximatedName));
 
-            var rune = runes.FirstOrDefault(r => r.Name.Contains(name)) is not null ? runes.FirstOrDefault(r => r.Name.Contains(name)) : runes.FirstOrDefault(r => r.Name.Contains(approximatedName));
+            var rune = runes.FirstOrDefault(rune => rune.Name.Contains(name)) is not null 
+                ? runes.FirstOrDefault(rune => rune.Name.Contains(name)) 
+                : runes.FirstOrDefault(rune => rune.Name.Contains(approximatedName));
 
             var result = _mapper.Map<RuneDto>(rune);
             return result;
@@ -62,13 +58,13 @@ namespace WildRiftWebAPI
         {
             var baseQuery = _context.Runes
                 .AsNoTracking()
-                .Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower())));
+                .Where(rune => query.SearchPhrase == null || (rune.Name.ToLower().Contains(query.SearchPhrase.ToLower())));
 
             if (!string.IsNullOrEmpty(query.SortBy))
             {
                 var columnsSelector = new Dictionary<string, Expression<Func<Rune, object>>>
                 {
-                    { nameof(Rune.Name), r => r.Name },
+                    { nameof(Rune.Name), rune => rune.Name },
                 };
 
                 var selectedColumn = columnsSelector[query.SortBy];
@@ -94,8 +90,6 @@ namespace WildRiftWebAPI
 
         public void Delete(string name)
         {
-            _logger.LogWarning($"Rune with name: {name}. Delete action invoked");
-
             var rune = _context.Runes.FirstOrDefault(rune => rune.Name == name);
 
             if (rune is null)
@@ -115,7 +109,7 @@ namespace WildRiftWebAPI
 
         public void Update(string name, UpdateRuneDto updateRune)
         {
-            var rune = _context.Runes.FirstOrDefault(r => r.Name == name);
+            var rune = _context.Runes.FirstOrDefault(rune => rune.Name == name);
 
             if (rune is null)
                 throw new NotFoundException("Rune not found");
@@ -129,7 +123,7 @@ namespace WildRiftWebAPI
 
         public string GetProperty(string name, string property)
         {
-            var rune = _context.Runes.FirstOrDefault(r => r.Name == name);
+            var rune = _context.Runes.FirstOrDefault(rune => rune.Name == name);
 
             if (rune is null)
                 throw new NotFoundException("Rune not found");

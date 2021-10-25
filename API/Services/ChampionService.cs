@@ -51,12 +51,18 @@ namespace WildRiftWebAPI
 
                 var champions = _context.Champions
                     .AsNoTracking()
-                    .Include(r => r.ChampionSpells)
-                    .Include(r => r.ChampionPassive).Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
+                    .Include(champion => champion.ChampionSpells)
+                    .Include(champion => champion.ChampionPassive)
+                    .Where(champion => champion.Name.Contains(name) || champion.Name.Contains(approximatedName));
 
-                var champion = champions.FirstOrDefault(r => r.Name.Contains(name)) is not null ? champions.FirstOrDefault(r => r.Name.Contains(name)) : champions.FirstOrDefault(r => r.Name.Contains(approximatedName));
+                var champion = champions.FirstOrDefault(r => r.Name.Contains(name)) is not null 
+                    ? champions.FirstOrDefault(r => r.Name.Contains(name)) 
+                    : champions.FirstOrDefault(r => r.Name.Contains(approximatedName));
 
-                champion.ChampionSpells = champion.ChampionSpells.OrderBy(ch => "QWER".IndexOf(ch.Id.Last())).ToList();
+                champion.ChampionSpells = champion.ChampionSpells
+                    .OrderBy(championSpell => "QWER".IndexOf(championSpell.Id.Last()))
+                    .ToList();
+
                 var result = _mapper.Map<ChampionDto>(champion);
                 return result;
             }, new Context($"{approximatedName}"));
@@ -68,16 +74,16 @@ namespace WildRiftWebAPI
             {
                 var baseQuery = _context.Champions
                     .AsNoTracking()
-                    .Include(r => r.ChampionSpells)
-                    .Include(r => r.ChampionPassive)
-                    .Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower()) || r.Title.ToLower().Contains(query.SearchPhrase.ToLower())));
+                    .Include(champion => champion.ChampionSpells)
+                    .Include(champion => champion.ChampionPassive)
+                    .Where(champion => query.SearchPhrase == null || (champion.Name.ToLower().Contains(query.SearchPhrase.ToLower()) || champion.Title.ToLower().Contains(query.SearchPhrase.ToLower())));
 
                 if (!string.IsNullOrEmpty(query.SortBy))
                 {
                     var columnsSelector = new Dictionary<string, Expression<Func<Champion, object>>>
                     {
-                        { nameof(Champion.Name), r => r.Name },
-                        { nameof(Champion.Title), r => r.Title },
+                        { nameof(Champion.Name), champion => champion.Name },
+                        { nameof(Champion.Title), champion => champion.Title },
                     };
 
                     var selectedColumn = columnsSelector[query.SortBy];
