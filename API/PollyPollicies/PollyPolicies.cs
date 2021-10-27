@@ -17,6 +17,7 @@ namespace WildRiftWebAPI
         #region Parameters for policies
 
         private static readonly ISyncCacheProvider _cacheProvider = new MemoryCacheProvider(new MemoryCache(new MemoryCacheOptions()));
+        private static readonly IAsyncCacheProvider _asyncCacheProvider = new MemoryCacheProvider(new MemoryCache(new MemoryCacheOptions()));
         private static readonly ITtlStrategy _ttlRelativeStrategy = new RelativeTtl(TimeSpan.FromMinutes(2));
 
         private static readonly Action<Context, string> _onCacheGet = (contex, operationalKey) => { Console.WriteLine($"Data get from cache. Cache key: {operationalKey}"); };
@@ -28,6 +29,7 @@ namespace WildRiftWebAPI
         #endregion Parameters for policies
         
         private static readonly Dictionary<string, Policy> _policies = new();
+        private static readonly Dictionary<string, AsyncPolicy> _asyncPolicies = new();
 
         static PollyPolicies()
         {
@@ -37,13 +39,20 @@ namespace WildRiftWebAPI
         private static void SetPolicies()
         {
             CachePolicy cachePolicy = Policy.Cache(_cacheProvider, _ttlRelativeStrategy, _onCacheGet, _onCacheMiss, _onCachePut, _onCacheGetError, _onCachePutError);
+            AsyncCachePolicy asyncCachePolicy = Policy.CacheAsync(_asyncCacheProvider, _ttlRelativeStrategy, _onCacheGet, _onCacheMiss, _onCachePut, _onCacheGetError, _onCachePutError);
 
             _policies.Add("CacheStrategy", cachePolicy);
+            _asyncPolicies.Add("AsyncCacheStrategy", asyncCachePolicy);
         }
 
         public static Dictionary<string, Policy> GetPolicies()
         {
             return _policies;
+        }
+
+        public static Dictionary<string, AsyncPolicy> GetAsyncPolicies()
+        {
+            return _asyncPolicies;
         }
     }
 }

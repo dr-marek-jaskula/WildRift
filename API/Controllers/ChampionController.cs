@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace WildRiftWebAPI
 {
@@ -21,9 +22,9 @@ namespace WildRiftWebAPI
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<string> GetProperty([FromRoute] string name, [FromRoute] string property)
+        public async Task<ActionResult<string>> GetProperty([FromRoute] string name, [FromRoute] string property)
         {
-            var championProperyDto = _championtService.GetProperty(name, property);
+            var championProperyDto = await _championtService.GetProperty(name, property);
             return Ok(championProperyDto);
         }
 
@@ -31,9 +32,9 @@ namespace WildRiftWebAPI
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<string> GetProperty([FromRoute] string name, [FromRoute] string spellType, [FromRoute] string property)
+        public async Task<ActionResult<string>> GetProperty([FromRoute] string name, [FromRoute] string spellType, [FromRoute] string property)
         {
-            var championProperyDto = _championtService.GetProperty(name, spellType, property);
+            var championProperyDto = await _championtService.GetProperty(name, spellType, property);
             return Ok(championProperyDto);
         }
 
@@ -41,18 +42,18 @@ namespace WildRiftWebAPI
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ChampionDto))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<ChampionDto> GetChampionByName([FromRoute] string name)
+        public async Task<ActionResult<ChampionDto>> GetChampionByName([FromRoute] string name)
         {
-            var championDto = _championtService.GetByName(name);
+            var championDto = await _championtService.GetByName(name);
             return Ok(championDto);
         }
 
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ChampionDto>))]
-        public ActionResult<IEnumerable<ChampionDto>> GetAll([FromQuery] ChampionQuery query)
+        public async Task<ActionResult<IEnumerable<ChampionDto>>> GetAll([FromQuery] ChampionQuery query)
         {
-            var championsDtos = _championtService.GetAll(query);
+            var championsDtos = await _championtService.GetAll(query);
             return Ok(championsDtos);
         }
 

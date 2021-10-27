@@ -1,20 +1,22 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Win32;
 using Polly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace WildRiftWebAPI
 {
     public interface IChampionService
     {
-        ChampionDto GetByName(string name);
+        Task<ChampionDto> GetByName(string name);
 
-        PageResult<ChampionDto> GetAll(ChampionQuery query);
+        Task<PageResult<ChampionDto>> GetAll(ChampionQuery query);
 
         void Delete(string name);
 
@@ -22,9 +24,9 @@ namespace WildRiftWebAPI
 
         void Update(string name, UpdateChampion updateChampion);
 
-        string GetProperty(string name, string property);
+        Task<string> GetProperty(string name, string property);
 
-        string GetProperty(string name, string spellType, string property);
+        Task<string> GetProperty(string name, string spellType, string property);
 
         List<string> GetAllNames();
     }
@@ -40,11 +42,11 @@ namespace WildRiftWebAPI
             _mapper = mapper;
         }
 
-        public ChampionDto GetByName(string name)
+        public async Task<ChampionDto> GetByName(string name)
         {
             string approximatedName = Helpers.ApproximateName(name, _context.Champions);
 
-            return ((Policy)PollyRegister.registry["CacheStrategy"]).Execute(context =>
+            return await ((AsyncPolicy)PollyRegister.registry["AsyncCacheStrategy"]).ExecuteAsync(async context =>
             {
                 if (approximatedName is "")
                     throw new NotFoundException("Champion not found");
@@ -55,9 +57,9 @@ namespace WildRiftWebAPI
                     .Include(ch => ch.ChampionPassive)
                     .Where(ch => ch.Name.Contains(name) || ch.Name.Contains(approximatedName));
 
-                var champion = champions.FirstOrDefault(ch => ch.Name.Contains(name)) is not null 
-                    ? champions.FirstOrDefault(ch => ch.Name.Contains(name)) 
-                    : champions.FirstOrDefault(ch => ch.Name.Contains(approximatedName));
+                var champion = await champions.FirstOrDefaultAsync(ch => ch.Name.Contains(name)) is not null
+                    ? await champions.FirstOrDefaultAsync(ch => ch.Name.Contains(name))
+                    : await champions.FirstOrDefaultAsync(ch => ch.Name.Contains(approximatedName));
 
                 champion.ChampionSpells = champion.ChampionSpells
                     .OrderBy(championSpell => "QWER".IndexOf(championSpell.Id.Last()))
@@ -68,9 +70,9 @@ namespace WildRiftWebAPI
             }, new Context($"{approximatedName}"));
         }
 
-        public PageResult<ChampionDto> GetAll(ChampionQuery query)
+        public async Task<PageResult<ChampionDto>> GetAll(ChampionQuery query)
         {
-            return ((Policy)PollyRegister.registry["CacheStrategy"]).Execute(context => 
+            return await ((AsyncPolicy)PollyRegister.registry["AsyncCacheStrategy"]).ExecuteAsync(async context =>
             {
                 var baseQuery = _context.Champions
                     .AsNoTracking()
@@ -81,10 +83,10 @@ namespace WildRiftWebAPI
                 if (!string.IsNullOrEmpty(query.SortBy))
                 {
                     var columnsSelector = new Dictionary<string, Expression<Func<Champion, object>>>
-                    {
-                        { nameof(Champion.Name), ch => ch.Name },
-                        { nameof(Champion.Title), ch => ch.Title },
-                    };
+                {
+                    { nameof(Champion.Name), ch => ch.Name },
+                    { nameof(Champion.Title), ch => ch.Title },
+                };
 
                     var selectedColumn = columnsSelector[query.SortBy];
 
@@ -93,10 +95,10 @@ namespace WildRiftWebAPI
                         : baseQuery.OrderByDescending(selectedColumn);
                 }
 
-                var champions = baseQuery
+                var champions = await baseQuery
                     .Skip(query.PageSize * (query.PageNumber - 1))
                     .Take(query.PageSize)
-                    .ToList();
+                    .ToListAsync();
 
                 int totalItemsCount = baseQuery.Count();
 
@@ -169,11 +171,15 @@ namespace WildRiftWebAPI
             _context.SaveChanges();
         }
 
-        public string GetProperty(string name, string property)
+        public async Task<string> GetProperty(string name, string property)
         {
-            return ((Policy)PollyRegister.registry["CacheStrategy"]).Execute(context => 
-            { 
-                var champion = _context.Champions.Include(ch => ch.ChampionSpells).Include(ch => ch.ChampionPassive).FirstOrDefault(ch => ch.Name == name);
+            return await ((AsyncPolicy)PollyRegister.registry["AsyncCacheStrategy"]).ExecuteAsync(async context =>
+            {
+                var champion = await _context.Champions
+                .AsNoTracking()
+                .Include(ch => ch.ChampionSpells)
+                .Include(ch => ch.ChampionPassive)
+                .FirstOrDefaultAsync(ch => ch.Name == name);
 
                 if (champion is null)
                     throw new NotFoundException("Champion not found");
@@ -189,11 +195,15 @@ namespace WildRiftWebAPI
             }, new Context($"{name} {property}"));
         }
 
-        public string GetProperty(string name, string spellType, string property)
+        public async Task<string> GetProperty(string name, string spellType, string property)
         {
-            return ((Policy)PollyRegister.registry["CacheStrategy"]).Execute(context => 
-            { 
-                var champion = _context.Champions.Include(ch => ch.ChampionSpells).Include(ch => ch.ChampionPassive).FirstOrDefault(ch => ch.Name == name);
+            return await ((AsyncPolicy)PollyRegister.registry["AsyncCacheStrategy"]).ExecuteAsync(async context =>
+            {
+                var champion = await _context.Champions
+                .AsNoTracking()
+                .Include(ch => ch.ChampionSpells)
+                .Include(ch => ch.ChampionPassive)
+                .FirstOrDefaultAsync(ch => ch.Name == name);
 
                 if (champion is null)
                     throw new NotFoundException("Champion not found");

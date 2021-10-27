@@ -78,7 +78,7 @@ namespace WildRiftWebAPI
 
             #region Register Polly Policies
 
-            services.ConfigurePollyPolicies(PollyPolicies.GetPolicies());
+            services.ConfigurePollyPolicies(PollyPolicies.GetPolicies(), PollyPolicies.GetAsyncPolicies());
 
             #endregion Register Polly Policies
 
