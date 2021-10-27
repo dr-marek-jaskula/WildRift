@@ -2,18 +2,20 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Polly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace WildRiftWebAPI
 {
     public interface IRuneService
     {
-        RuneDto GetByName(string name);
+        Task<RuneDto> GetByName(string name);
 
-        PageResult<RuneDto> GetAll(RuneQuery query);
+        Task<PageResult<RuneDto>> GetAll(RuneQuery query);
 
         void Delete(string name);
 
@@ -21,7 +23,7 @@ namespace WildRiftWebAPI
 
         void Update(string name, UpdateRuneDto updateRune);
 
-        string GetProperty(string name, string property);
+        Task<string> GetProperty(string name, string property);
     }
 
     public class RuneService : IRuneService
@@ -35,28 +37,33 @@ namespace WildRiftWebAPI
             _mapper = mapper;
         }
 
-        public RuneDto GetByName(string name)
+        public async Task<RuneDto> GetByName(string name)
         {
             string approximatedName = Helpers.ApproximateName(name, _context.Runes);
 
-            if (approximatedName is "")
-                throw new NotFoundException("Rune not found");
+            return await ((AsyncPolicy)PollyRegister.registry["AsyncCacheStrategy"]).ExecuteAsync(async context =>
+            {
+                if (approximatedName is "")
+                    throw new NotFoundException("Rune not found");
 
-            var runes = _context.Runes
-                .AsNoTracking()
-                .Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
+                var runes = _context.Runes
+                    .AsNoTracking()
+                    .Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
 
-            var rune = runes.FirstOrDefault(r => r.Name.Contains(name)) is not null 
-                ? runes.FirstOrDefault(r => r.Name.Contains(name)) 
-                : runes.FirstOrDefault(r => r.Name.Contains(approximatedName));
+                var rune = await runes.FirstOrDefaultAsync(r => r.Name.Contains(name)) is not null
+                    ? await runes.FirstOrDefaultAsync(r => r.Name.Contains(name))
+                    : await runes.FirstOrDefaultAsync(r => r.Name.Contains(approximatedName));
 
-            var result = _mapper.Map<RuneDto>(rune);
-            return result;
+                var result = _mapper.Map<RuneDto>(rune);
+                return result;
+            }, new Context($"{approximatedName}"));
         }
 
-        public PageResult<RuneDto> GetAll(RuneQuery query)
+        public async Task<PageResult<RuneDto>> GetAll(RuneQuery query)
         {
-            var baseQuery = _context.Runes
+            return await ((AsyncPolicy)PollyRegister.registry["AsyncCacheStrategy"]).ExecuteAsync(async context =>
+            {
+                var baseQuery = _context.Runes
                 .AsNoTracking()
                 .Where(r => query.SearchPhrase == null || r.Name.ToLower().Contains(query.SearchPhrase.ToLower()));
 
@@ -74,18 +81,18 @@ namespace WildRiftWebAPI
                     : baseQuery.OrderByDescending(selectedColumn);
             }
 
-            var runes = baseQuery
+            var runes = await baseQuery
                 .Skip(query.PageSize * (query.PageNumber - 1))
                 .Take(query.PageSize)
-                .ToList();
+                .ToListAsync();
 
             int totalRunesCount = baseQuery.Count();
 
             var runeDtos = _mapper.Map<List<RuneDto>>(runes);
-
             var result = new PageResult<RuneDto>(runeDtos, totalRunesCount, query.PageSize, query.PageNumber);
 
             return result;
+            }, new Context($"{query}"));
         }
 
         public void Delete(string name)
@@ -121,21 +128,24 @@ namespace WildRiftWebAPI
             _context.SaveChanges();
         }
 
-        public string GetProperty(string name, string property)
+        public async Task<string> GetProperty(string name, string property)
         {
-            var rune = _context.Runes.FirstOrDefault(r => r.Name == name);
+            return await ((AsyncPolicy)PollyRegister.registry["AsyncCacheStrategy"]).ExecuteAsync(async context =>
+            {
+                var rune = await _context.Runes.FirstOrDefaultAsync(r => r.Name == name);
 
-            if (rune is null)
-                throw new NotFoundException("Rune not found");
+                if (rune is null)
+                    throw new NotFoundException("Rune not found");
 
-            Helpers.Capitalize(ref property);
-            var foundProperty = typeof(Rune).GetProperty(property);
+                Helpers.Capitalize(ref property);
+                var foundProperty = typeof(Rune).GetProperty(property);
 
-            if (foundProperty is null)
-                throw new NotFoundException("Field not found");
+                if (foundProperty is null)
+                    throw new NotFoundException("Field not found");
 
-            var result = foundProperty.GetValue(rune).ToString();
-            return result;
+                var result = foundProperty.GetValue(rune).ToString();
+                return result;
+            }, new Context($"{name}{property}"));
         }
     }
 }

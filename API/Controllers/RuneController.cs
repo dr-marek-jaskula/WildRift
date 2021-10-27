@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace WildRiftWebAPI
 {
@@ -21,9 +22,9 @@ namespace WildRiftWebAPI
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<string> GetProperty([FromRoute] string name, [FromRoute] string property)
+        public async Task<ActionResult<string>> GetProperty([FromRoute] string name, [FromRoute] string property)
         {
-            var runeProperyDto = _runeService.GetProperty(name, property);
+            var runeProperyDto = await _runeService.GetProperty(name, property);
             return Ok(runeProperyDto);
         }
 
@@ -31,18 +32,18 @@ namespace WildRiftWebAPI
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RuneDto))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<RuneDto> GetRuneByName([FromRoute] string name)
+        public async Task<ActionResult<RuneDto>> GetRuneByName([FromRoute] string name)
         {
-            var runeDto = _runeService.GetByName(name);
+            var runeDto = await _runeService.GetByName(name);
             return Ok(runeDto);
         }
 
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<RuneDto>))]
-        public ActionResult<IEnumerable<RuneDto>> GetAll([FromQuery] RuneQuery query)
+        public async Task<ActionResult<IEnumerable<RuneDto>>> GetAll([FromQuery] RuneQuery query)
         {
-            var runeDtos = _runeService.GetAll(query);
+            var runeDtos = await _runeService.GetAll(query);
             return Ok(runeDtos);
         }
 
