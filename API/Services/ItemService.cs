@@ -1,18 +1,20 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Polly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace WildRiftWebAPI
 {
     public interface IItemService
     {
-        ItemDto GetByName(string name);
+        Task<ItemDto> GetByName(string name);
 
-        PageResult<ItemDto> GetAll(ItemQuery query);
+        Task<PageResult<ItemDto>> GetAll(ItemQuery query);
 
         void Delete(string name);
 
@@ -20,50 +22,55 @@ namespace WildRiftWebAPI
 
         void Update(string name, UpdateItemDto updateItem);
 
-        string GetProperty(string name, string property);
+        Task<string> GetProperty(string name, string property);
     }
 
     public class ItemService : IItemService
     {
         private readonly WildRiftDbContext _context;
         private readonly IMapper _mapper;
-        private readonly ILogger<ItemService> _logger;
 
-        public ItemService(WildRiftDbContext dbContex, IMapper mapper, ILogger<ItemService> logger)
+        public ItemService(WildRiftDbContext dbContex, IMapper mapper)
         {
             _context = dbContex;
             _mapper = mapper;
-            _logger = logger;
         }
 
-        public ItemDto GetByName(string name)
+        public async Task<ItemDto> GetByName(string name)
         {
             string approximatedName = Helpers.ApproximateName(name, _context.Items);
 
-            if (approximatedName is "")
-                throw new NotFoundException("Item not found");
+            return await ((AsyncPolicy)PollyRegister.registry["AsyncCacheStrategy"]).ExecuteAsync(async context => 
+            {
+                if (approximatedName is "")
+                    throw new NotFoundException("Item not found");
 
-            var items = _context.Items
-                .AsNoTracking()
-                .Where(r => r.Name.Contains(name) || r.Name.Contains(approximatedName));
+                var items = _context.Items
+                    .AsNoTracking()
+                    .Where(i => i.Name.Contains(name) || i.Name.Contains(approximatedName));
 
-            var item = items.FirstOrDefault(r => r.Name.Contains(name)) is not null ? items.FirstOrDefault(r => r.Name.Contains(name)) : items.FirstOrDefault(r => r.Name.Contains(approximatedName));
+                var item = await items.FirstOrDefaultAsync(i => i.Name.Contains(name)) is not null
+                    ? await items.FirstOrDefaultAsync(i => i.Name.Contains(name))
+                    : await items.FirstOrDefaultAsync(i => i.Name.Contains(approximatedName));
 
-            var result = _mapper.Map<ItemDto>(item);
-            return result;
+                var result = _mapper.Map<ItemDto>(item);
+                return result;
+            }, new Context($"{approximatedName}"));
         }
 
-        public PageResult<ItemDto> GetAll(ItemQuery query)
+        public async Task<PageResult<ItemDto>> GetAll(ItemQuery query)
         {
-            var baseQuery = _context.Items
+            return await ((AsyncPolicy)PollyRegister.registry["AsyncCacheStrategy"]).ExecuteAsync(async context =>
+            {
+                var baseQuery = _context.Items
                 .AsNoTracking()
-                .Where(r => query.SearchPhrase == null || (r.Name.ToLower().Contains(query.SearchPhrase.ToLower())));
+                .Where(i => query.SearchPhrase == null || i.Name.ToLower().Contains(query.SearchPhrase.ToLower()));
 
             if (!string.IsNullOrEmpty(query.SortBy))
             {
                 var columnsSelector = new Dictionary<string, Expression<Func<Item, object>>>
                 {
-                    { nameof(Item.Name), r => r.Name },
+                    { nameof(Item.Name), i => i.Name },
                 };
 
                 var selectedColumn = columnsSelector[query.SortBy];
@@ -73,10 +80,11 @@ namespace WildRiftWebAPI
                     : baseQuery.OrderByDescending(selectedColumn);
             }
 
-            var items = baseQuery
+            var items = await baseQuery
+                .AsNoTracking()
                 .Skip(query.PageSize * (query.PageNumber - 1))
                 .Take(query.PageSize)          
-                .ToList();
+                .ToListAsync();
 
             int totalItemsCount = baseQuery.Count();
 
@@ -85,13 +93,12 @@ namespace WildRiftWebAPI
             var result = new PageResult<ItemDto>(itemDtos, totalItemsCount, query.PageSize, query.PageNumber);
 
             return result;
+            }, new Context($"{query}"));
         }
 
         public void Delete(string name)
         {
-            _logger.LogWarning($"Item with name: {name}. Delete action invoked");
-
-            var item = _context.Items.FirstOrDefault(item => item.Name == name);
+            var item = _context.Items.FirstOrDefault(i => i.Name == name);
 
             if (item is null)
                 throw new NotFoundException("Item not found");
@@ -110,7 +117,7 @@ namespace WildRiftWebAPI
 
         public void Update(string name, UpdateItemDto updateItem)
         {
-            var item = _context.Items.FirstOrDefault(r => r.Name == name);
+            var item = _context.Items.FirstOrDefault(i => i.Name == name);
 
             if (item is null)
                 throw new NotFoundException("Item not found");
@@ -122,21 +129,24 @@ namespace WildRiftWebAPI
             _context.SaveChanges();
         }
 
-        public string GetProperty(string name, string property)
+        public async Task<string> GetProperty(string name, string property)
         {
-            var item = _context.Items.FirstOrDefault(r => r.Name == name);
+            return await ((AsyncPolicy)PollyRegister.registry["AsyncCacheStrategy"]).ExecuteAsync(async context =>
+            {
+                var item = await _context.Items.FirstOrDefaultAsync(i => i.Name == name);
 
-            if (item is null)
-                throw new NotFoundException("Item not found");
+                if (item is null)
+                    throw new NotFoundException("Item not found");
 
-            Helpers.Capitalize(ref property);
-            var foundProperty = typeof(Item).GetProperty(property);
+                Helpers.Capitalize(ref property);
+                var foundProperty = typeof(Item).GetProperty(property);
 
-            if (foundProperty is null)
-                throw new NotFoundException("Statistic not found");
+                if (foundProperty is null)
+                    throw new NotFoundException("Statistic not found");
 
-            var result = foundProperty.GetValue(item).ToString();
-            return result;
+                var result = foundProperty.GetValue(item).ToString();
+                return result;
+            }, new Context($"{name}{property}"));
         }
     }
 }

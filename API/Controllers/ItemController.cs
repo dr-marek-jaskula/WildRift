@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace WildRiftWebAPI
 {
@@ -21,9 +22,9 @@ namespace WildRiftWebAPI
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<string> GetProperty([FromRoute] string name, [FromRoute] string property)
+        public async Task<ActionResult<string>> GetProperty([FromRoute] string name, [FromRoute] string property)
         {
-            var itemProperyDto = _itemService.GetProperty(name, property);
+            var itemProperyDto = await _itemService.GetProperty(name, property);
             return Ok(itemProperyDto);
         }
 
@@ -31,18 +32,18 @@ namespace WildRiftWebAPI
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ItemDto))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<ItemDto> GetItemByName([FromRoute] string name)
+        public async Task<ActionResult<ItemDto>> GetItemByName([FromRoute] string name)
         {
-            var itemDto = _itemService.GetByName(name);
+            var itemDto = await _itemService.GetByName(name);
             return Ok(itemDto);
         }
 
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ItemDto>))]
-        public ActionResult<IEnumerable<ItemDto>> GetAll([FromQuery] ItemQuery query)
+        public async Task<ActionResult<IEnumerable<ItemDto>>> GetAll([FromQuery] ItemQuery query)
         {
-            var itemDtos = _itemService.GetAll(query);
+            var itemDtos = await _itemService.GetAll(query);
             return Ok(itemDtos);
         }
 

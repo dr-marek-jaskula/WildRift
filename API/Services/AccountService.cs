@@ -49,8 +49,8 @@ namespace WildRiftWebAPI
         public string GenerateJwt(LoginDto dto)
         {
             var user = _context.Users
-                .Include(u => u.Role)
-                .FirstOrDefault(u => u.Username == dto.Username);
+                .Include(user => user.Role)
+                .FirstOrDefault(user => user.Username == dto.Username);
 
             if (user is null)
                 throw new BadRequestException("Invalid user name or password");
