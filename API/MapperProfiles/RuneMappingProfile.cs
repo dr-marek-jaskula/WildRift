@@ -1,14 +1,11 @@
-using AutoMapper;
+namespace WildRiftWebAPI;
 
-namespace WildRiftWebAPI
+public class RuneMappingProfile : Profile
 {
-    public class RuneMappingProfile : Profile
+    public RuneMappingProfile()
     {
-        public RuneMappingProfile()
-        {
-            CreateMap<Rune, RuneDto>();
-            CreateMap<UpdateRuneDto, Rune>();
-            CreateMap<CreateRuneDto, Rune>();
-        }
+        CreateMap<Rune, RuneDto>();
+        CreateMap<UpdateRuneDto, Rune>();
+        CreateMap<CreateRuneDto, Rune>();
     }
 }

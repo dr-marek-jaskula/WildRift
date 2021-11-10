@@ -1,11 +1,9 @@
 using FluentValidation;
+namespace WildRiftWebAPI;
 
-namespace WildRiftWebAPI
+public class CreateChampionValidator : AbstractValidator<CreateChampion>
 {
-    public class CreateChampionValidator : AbstractValidator<CreateChampion>
+    public CreateChampionValidator()
     {
-        public CreateChampionValidator()
-        {
-        }
     }
 }

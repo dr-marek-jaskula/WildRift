@@ -1,11 +1,8 @@
-using System.Collections.Generic;
+namespace WildRiftWebAPI;
 
-namespace WildRiftWebAPI
-{
-    public record CreateChampion
-    (
-        CreateChampionDto CreateChampionDto,
-        CreateChampionPassiveDto CreateChampionPassiveDto,
-        List<CreateChampionSpellDto> CreateChampionSpellDtos
-    );
-}
+public record CreateChampion
+(
+    CreateChampionDto CreateChampionDto,
+    CreateChampionPassiveDto CreateChampionPassiveDto,
+    List<CreateChampionSpellDto> CreateChampionSpellDtos
+);
