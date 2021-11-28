@@ -1,8 +1,10 @@
 process.env.NODE_TLS_REJECT_UNAUTHORIZED="0";
 import Image from "next/image";
+import Link from "next/link";
 import styles from "../../styles/ChampionPage.module.scss";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Wrapper from "../../components/Wrapper";
+import { Checkbox, FormControlLabel, FormGroup } from "@mui/material";
 
 const ChampionsPage = (props) => {
 
@@ -14,6 +16,27 @@ const ChampionsPage = (props) => {
 	const fixedChamionNames = championNames.map((item) => ({...item, params: {name: fixName(item.params.name)}}));
 	const [ championList, setChampionList ] = useState(fixedChamionNames);
 	const [championTypes] = useState(["Assassin", "Defender", "Mage", "Marksman", "Support", "Warrior"]);
+	const [filter, setFilter] = useState("");
+	const initialChampionTypesObject = {};
+	
+	useEffect(() => {
+		championTypes.forEach(type => initialChampionTypesObject[type] = false);
+
+	}, []);
+
+	const [selectedTypes, setSelectedTypes] = useState(initialChampionTypesObject);
+
+	const handleCheck = (e) => {
+		const item = e.target.value;
+		setSelectedTypes({
+			...selectedTypes,
+			[item]: !selectedTypes[item]
+		});
+	};
+
+	const handleSearch = (e) => {
+		setFilter(e.target.value);
+	};
 
 	return (
 		<Wrapper darkmode={darkmode}>
@@ -21,29 +44,44 @@ const ChampionsPage = (props) => {
 				<h1 className={styles.mainHeader}>Champions</h1>
 				<div className={styles.filters}>
 					<div className={styles.searchBarWrapper}>
-						<label className={styles.championFilterLabel}>Search by name</label>
-						<input type="text"/>
+						<label htmlFor="championSearch" className={styles.championFilterLabel}>Search by name</label>
+						<input onChange={handleSearch} placeholder="Start typing the champion name here" id="championSearch" name="championSearch" type="text"/>
 					</div>
 					<div className={styles.championTypesFilters}>
 						{championTypes.map(item => (
 							<div key={item} className={styles.championTypeCheckbox}>
-								<label className={styles.championFilterLabel}>{item}</label>
-								<input type="checkbox" value={item}></input>
+								<FormGroup>
+									<FormControlLabel
+										onChange={handleCheck} 
+										classes={{label: !selectedTypes[item] ? styles.championFilterLabel : styles.championFilterLabelChecked}} 
+										labelPlacement="start" 
+										control={<Checkbox classes={{root: styles.checkbox, checked: styles.checked}} value={item} />} label={item}/>
+								</FormGroup>
 							</div>
 						))}
 					</div>
 				</div>
-				{championList.map((item, index) => {
-					const { params } = item;
-					const { name } = params;
+				<div className={styles.championList}>
+					{championList.filter(item => {
+						if (!filter.length) return true;
+						return item.params.name.toUpperCase().includes(filter.toUpperCase());
+					}).map((item, index) => {
+						const { params } = item;
+						const { name } = params;
+						return (
+							<Link href={`champions/${name}`} key={index}>
+								<div className={styles.championItem} >
+									<Image className={styles.championImage} width="120" height="120"  src={`/champions/thumbnails/${name}.png`}/>
+									<h3 className={styles.championName}>{name}</h3>
+								</div>
+							</Link>)
+						;}) }	
+				</div>
 
-			
-					return <Image width="120" height="120" key={index} src={`/champions/thumbnails/${name}.png`}/>;}) }	
 			</main>
 		</Wrapper>
 	);
 };
-
 
 
 export default ChampionsPage;

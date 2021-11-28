@@ -1,12 +1,89 @@
+@import '../styles/variables.scss';
+
 .championsPage {
     padding-top: 50px;
     background-image: url('../public/diamondbg.svg');
     background-size: contain;
-    background-repeat: repeat;
+    background-repeat: no-repeat;
+    min-height: 110vh;
+    background-position: center top;
 }
 
 .mainHeader {
     text-align: center;
     margin-bottom: 50px;
+}
+
+.filters {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 45px;
+    .searchBarWrapper {
+        display: flex;
+        flex-direction: column;
+        width: 40%;
+        label {
+            margin-bottom: 10px;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            font-family: Exo, sans-serif;
+            font-weight: 300;
+        }
+    }
+    .championFilterLabel {
+        font-weight: 800;
+        font-size: 18px;
+        text-transform: uppercase;
+        font-family: Exo, sans-serif;
+    }
+    .championFilterLabelChecked {
+        @extend .championFilterLabel;
+        color: #fff;
+    }
+    .checkbox {
+        svg {
+            fill: $dark-mode-text2;
+        }
+    }
+    .checked {
+        color: #fff;
+        svg {
+            fill: #fff;
+        }
+    }
+    .championTypesFilters {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        > div {
+            flex-basis: 30%;
+            width: 30%;
+        }
+    }
+}
+.championList {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fill, 120px);
+    justify-content: center;
+    .championItem {
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 150ms ease-in;
+        &:hover {
+            transform: scale(1.15)
+        }
+        .championName {
+            color: #fff;
+            font-size: 16px;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+    }
 }
 
