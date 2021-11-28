@@ -1,0 +1,35 @@
+@import "./variables.scss";
+@import url('https://fonts.googleapis.com/css2?family=Exo:wght@800&display=swap');
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: "Exo", sans-serif;
+}
+
+h1 {
+  font-weight: 800;
+  font-size: 40px;
+  text-transform: uppercase;
+  color: $dark-mode-text;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.white-bg {
+  background-color: $white-bg;
+}
+
+.dark-bg {
+  background-color: $dark-bg;
+}

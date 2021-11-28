@@ -1,0 +1,12 @@
+.showcase {
+    align-items: center;
+    display: flex !important;
+    height: 100vh;
+    justify-content: center;
+    overflow: hidden;
+    width: 100%;
+    img {
+       width: 100%;
+       object-fit: cover;
+    }
+}
