@@ -10,9 +10,12 @@ body {
 
 h1 {
   font-weight: 800;
-  font-size: 40px;
+  font-size: 20px;
   text-transform: uppercase;
   color: $dark-mode-text;
+  @media (min-width: 767px) {
+    font-size: 40px;
+  }
 }
 
 a {
