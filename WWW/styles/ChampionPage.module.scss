@@ -37,9 +37,12 @@
         }
         input {
             padding: 10px;
-            font-size: 16px;
+            font-size: 12px;
             font-family: Exo, sans-serif;
             font-weight: 300;
+            @media (min-width: 767px) {
+                font-size: 16px;
+            }
         }
     }
     .checkboxWrapper {
@@ -49,9 +52,20 @@
     }
     .championFilterLabel {
         font-weight: 800;
-        font-size: 18px;
+        font-size: 12px;
         text-transform: uppercase;
         font-family: Exo, sans-serif;
+        &__root {
+            @media (min-width: 767px) {
+                margin: unset;
+                width: fit-content;
+            }
+            margin: 0;
+            width: 100%;
+        }
+        @media (min-width: 767px) {
+            font-size: 18px;
+        }
     }
     .championFilterLabelChecked {
         @extend .championFilterLabel;
@@ -71,18 +85,34 @@
     .championTypesFilters {
         display: flex;
         flex-wrap: wrap;
-        justify-content: flex-end;
+        justify-content: flex-start;
+        margin-top: 10px;
+        @media (min-width: 767px) {
+            justify-content: flex-end;
+            margin-top: 0;
+        }
         > div {
-            flex-basis: 30%;
-            width: 30%;
+            flex-basis: 33%;
+            width: 33%;
+            @media (min-width: 767px) {
+                flex-basis: 30%;
+                width: 30%;
+            }
             > .checkboxWrapper {
+                justify-content: space-between;
+                @media (min-width: 767px) {
+                    justify-content: flex-end;
+                }
                 > label {
-                    &:hover {
-                        * {
-                            color: #fff !important;
-                            fill: #fff !important;
+                    @media (min-width: 767px) {
+                        &:hover {
+                            * {
+                                color: #fff !important;
+                                fill: #fff !important;
+                            }
                         }
                     }
+
                 }
             }
         }
@@ -91,8 +121,11 @@
 .championList {
     display: grid;
     gap: 20px;
-    grid-template-columns: repeat(auto-fill, 120px);
+    grid-template-columns: repeat(auto-fill, 90px);
     justify-content: center;
+    @media (min-width: 767px) {
+        grid-template-columns: repeat(auto-fill, 120px);
+    }
     .championItem {
         align-items: center;
         display: flex;
