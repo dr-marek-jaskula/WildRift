@@ -1,11 +1,8 @@
-using System;
+namespace WildRiftWebAPI;
 
-namespace WildRiftWebAPI
+public class BadRequestException : Exception
 {
-    public class BadRequestException : Exception
+    public BadRequestException(string message) : base(message)
     {
-        public BadRequestException(string message) : base(message)
-        {
-        }
     }
 }

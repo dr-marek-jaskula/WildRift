@@ -1,7 +1,5 @@
-namespace WildRiftWebAPI
+namespace WildRiftWebAPI;
+public enum SortDirection
 {
-    public enum SortDirection
-    {
-        Ascending, Descending
-    }
+    Ascending, Descending
 }

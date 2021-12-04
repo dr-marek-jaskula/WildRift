@@ -1,14 +1,11 @@
-using AutoMapper;
+namespace WildRiftWebAPI;
 
-namespace WildRiftWebAPI
+public class ItemMappingProfile : Profile
 {
-    public class ItemMappingProfile : Profile
+    public ItemMappingProfile()
     {
-        public ItemMappingProfile()
-        {
-            CreateMap<Item, ItemDto>();
-            CreateMap<UpdateItemDto, Item>();
-            CreateMap<CreateItemDto, Item>();
-        }
+        CreateMap<Item, ItemDto>();
+        CreateMap<UpdateItemDto, Item>();
+        CreateMap<CreateItemDto, Item>();
     }
 }
