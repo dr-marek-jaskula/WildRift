@@ -1,8 +1,5 @@
-using System;
+namespace WildRiftWebAPI;
 
-namespace WildRiftWebAPI
+public class ForbidException : Exception
 {
-    public class ForbidException : Exception
-    {
-    }
 }
