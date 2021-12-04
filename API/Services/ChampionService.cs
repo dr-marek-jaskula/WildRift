@@ -1,5 +1,7 @@
-using System.Linq.Expressions;
 namespace WildRiftWebAPI;
+
+using System.Linq.Expressions;
+using System.Text.Json;
 
 public interface IChampionService
 {
@@ -18,6 +20,7 @@ public interface IChampionService
     Task<string> GetProperty(string name, string spellType, string property);
 
     List<string> GetAllNames();
+    List<ChampionNameTypeDto> GetAllNamesAndTypes();
 }
 
 public class ChampionService : IChampionService
@@ -233,6 +236,14 @@ public class ChampionService : IChampionService
         return _context.Champions
             .AsNoTracking()
             .Select(ch => ch.Name)
+            .ToList();
+    }
+
+    public List<ChampionNameTypeDto> GetAllNamesAndTypes()
+    {
+        return _context.Champions
+            .AsNoTracking()
+            .Select(ch => new ChampionNameTypeDto(ch.Name, ch.Roles.Split(",", StringSplitOptions.None).ToList()))
             .ToList();
     }
 }

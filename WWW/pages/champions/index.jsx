@@ -4,7 +4,6 @@ import Link from "next/link";
 import styles from "../../styles/ChampionPage.module.scss";
 import { useState, useEffect } from "react";
 import Wrapper from "../../components/Wrapper";
-import { ReactComponent as CheckboxIcon } from "../../public/checkbox.svg";
 import { Checkbox, FormControlLabel, FormGroup, typographyClasses } from "@mui/material";
 
 const ChampionsPage = (props) => {

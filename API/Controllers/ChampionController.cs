@@ -62,6 +62,15 @@ public class ChampionController : ControllerBase
         return Ok(championNames);
     }
 
+    [HttpGet("NamesAndTypes")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<ChampionNameTypeDto>))]
+    public ActionResult<IEnumerable<ChampionNameTypeDto>> GetAllNamesAndTypes()
+    {
+        var championNamesAndTypes = _championtService.GetAllNamesAndTypes();
+        return Ok(championNamesAndTypes);
+    }
+
     [HttpDelete("{name}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
