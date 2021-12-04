@@ -4,25 +4,23 @@ import Link from "next/link";
 import styles from "../../styles/ChampionPage.module.scss";
 import { useState, useEffect } from "react";
 import Wrapper from "../../components/Wrapper";
-import { ReactComponent as CheckboxIcon } from "../../public/checkbox.svg";
-import { Checkbox, FormControlLabel, FormGroup, typographyClasses } from "@mui/material";
+import { Checkbox, FormControlLabel, FormGroup } from "@mui/material";
 
 const ChampionsPage = (props) => {
 
 	const { darkmode, toggleDarkMode, championNames } = props;
-	const fixName = (string) => {
+	const processToFilename = (string) => {
 		return string.replace(/[^a-zA-Z0-9]/g, "");
 	};
 	
-	const fixedChamionNames = championNames.map((item) => ({...item, params: {name: fixName(item.params.name)}}));
-	const [ championList, setChampionList ] = useState(fixedChamionNames);
-	const [championTypes] = useState(["Assassin", "Defender", "Mage", "Marksman", "Support", "Warrior"]);
-	const [filter, setFilter] = useState("");
+	const fixedChampionNames = championNames.map((item) => ({...item, params: {imgName: processToFilename(item.params.name), name: item.params.name}}));
+	const [ championList ] = useState(fixedChampionNames);
+	const [ championTypes ] = useState(["Assassin", "Defender", "Mage", "Marksman", "Support", "Warrior"]);
+	const [ filter, setFilter ] = useState("");
 	const initialChampionTypesObject = {};
 	
 	useEffect(() => {
 		championTypes.forEach(type => initialChampionTypesObject[type] = false);
-
 	}, []);
 
 	const [selectedTypes, setSelectedTypes] = useState(initialChampionTypesObject);
@@ -54,7 +52,7 @@ const ChampionsPage = (props) => {
 								<FormGroup classes={{root: styles.checkboxWrapper}}>
 									<FormControlLabel
 										onChange={handleCheck} 
-										classes={{label: !selectedTypes[item] ? styles.championFilterLabel : styles.championFilterLabelChecked}} 
+										classes={{root: styles.championFilterLabel__root, label: !selectedTypes[item] ? styles.championFilterLabel : styles.championFilterLabelChecked}} 
 										labelPlacement="start"
 										control={
 											<Checkbox 
@@ -81,17 +79,16 @@ const ChampionsPage = (props) => {
 						return item.params.name.toUpperCase().includes(filter.toUpperCase());
 					}).map((item, index) => {
 						const { params } = item;
-						const { name } = params;
+						const { name, imgName } = params;
 						return (
 							<Link href={`champions/${name}`} key={index}>
 								<div className={styles.championItem} >
-									<Image className={styles.championImage} width="120" height="120"  src={`/champions/thumbnails/${name}.png`}/>
+									<Image className={styles.championImage} width="120" height="120"  src={`/champions/thumbnails/${imgName}.png`}/>
 									<h3 className={styles.championName}>{name}</h3>
 								</div>
 							</Link>)
 						;}) }	
 				</div>
-
 			</main>
 		</Wrapper>
 	);
