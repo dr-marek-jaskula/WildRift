@@ -3,7 +3,7 @@ import Image from "next/image";
 import styles from "../styles/Home.module.scss";
 import bgImage from "../resources/images/main_page/bg.jpg";
 import Logo from "../components/logo/Logo";
-import MainMenu from "../components/menu/MainMenu";
+import Header from "../components/menu/Header";
 
 export default function Home(props) {
 	return (
@@ -20,7 +20,7 @@ export default function Home(props) {
 			</main>
 
 			<footer className={styles.footer}>
-				<MainMenu />
+				<Header />
 			</footer>
 		</div>
 	);
